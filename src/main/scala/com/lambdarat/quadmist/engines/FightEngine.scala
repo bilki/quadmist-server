@@ -19,9 +19,6 @@ trait FightEngine {
       (p1atk - Random.nextInt(p1atk + 1), p2def - Random.nextInt(p2def + 1))
     }
 
-    val attackerId = attacker.id
-    val defenderId = defender.id
-
     val (atkStat, defStat) = attacker.bclass match {
       case Physical => (attacker.power.toInt, defender.pdef.toInt)
       case Magical  => (attacker.power.toInt, defender.mdef.toInt)
@@ -36,8 +33,8 @@ trait FightEngine {
     val (atkScore, defScore) = statVs(atkStat, defStat)
 
     Fight(
-      attackerId,
-      defenderId,
+      attacker,
+      defender,
       AttackerPoints(atkScore),
       DefenderPoints(defScore),
       AttackerWins(atkScore > defScore)
@@ -57,15 +54,12 @@ trait FightEngine {
       defender: Card,
       side: Arrow
   )(implicit gameSettings: GameSettings): Either[String, Fight] = {
-    val attackerId = attacker.id
-    val defenderId = defender.id
-
     // Fight!!
     val fightResult = if (defender.arrows.contains(side.opposite)) {
       arrowCombat(attacker, defender, gameSettings)
     } else {
       // Instant win, no defender arrow
-      Fight(attackerId, defenderId, AttackerPoints(0), DefenderPoints(0), AttackerWins(true))
+      Fight(attacker, defender, AttackerPoints(0), DefenderPoints(0), AttackerWins(true))
     }
 
     Either.cond(

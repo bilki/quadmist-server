@@ -9,19 +9,11 @@ import memeid4s.UUID
   * @param board distribution of cards and blocks
   * @param fights list of already computed fights
   */
-final case class MatchSnapshot private (
+final case class MatchSnapshot(
     board: Board,
-    fights: List[Fight],
-    id: MatchSnapshot.Id
-) {
-  private def copy(): Unit = {}
-}
+    fights: List[Fight]
+)
 
 object MatchSnapshot {
   @newtype case class Id(toUUID: UUID)
-
-  def apply(board: Board, fights: List[Fight]): MatchSnapshot = {
-    val uniqueId = Id(UUID.V4.random)
-    MatchSnapshot(board, fights, uniqueId)
-  }
 }

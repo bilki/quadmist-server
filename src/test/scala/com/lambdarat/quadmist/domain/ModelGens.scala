@@ -25,17 +25,21 @@ object ModelGens {
 
   implicit val arrows: Arbitrary[List[Arrow]] = Arbitrary(arrowsGenerator)
 
+  implicit val uuidArb: Arbitrary[UUID] = Arbitrary(Gen.const(UUID.V4.random))
+
+  def unwrapOptGen[A](opt: Option[A]): Gen[A] = opt.fold[Gen[A]](Gen.fail)(Gen.const)
+
   private def cardGenerator(implicit gameSettings: GameSettings): Gen[Card] =
     for {
-      ownerId     <- Gen.const(UUID.V4.random).map(Player.Id.apply)
-      cardClass   <- cardClassGenerator
+      ownerId     <- uuidArb.arbitrary.map(Player.Id.apply)
       power       <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1).map(Power.apply)
       battleClass <- battleClassGenerator
       pdef        <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1).map(PhysicalDef.apply)
       mdef        <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1).map(MagicalDef.apply)
       arrows      <- arrowsGenerator
-      maybeCard    = Card(ownerId, cardClass.id, power, battleClass, pdef, mdef, arrows)
-      card        <- maybeCard.fold[Gen[Card]](Gen.fail)(Gen.const)
+      cardClassId <- uuidArb.arbitrary.map(CardClass.Id.apply)
+      maybeCard    = Card(ownerId, cardClassId, power, battleClass, pdef, mdef, arrows)
+      card        <- unwrapOptGen(maybeCard)
     } yield card
 
   implicit def cards(implicit gameSettings: GameSettings): Arbitrary[Card] =

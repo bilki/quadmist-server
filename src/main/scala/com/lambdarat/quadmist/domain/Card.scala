@@ -31,29 +31,28 @@ object BattleClass extends Enum[BattleClass] {
   * Unique card instance.
   *
   * @param ownerId player identifier
-  * @param cardType type of card
+  * @param cardClassId type of card
   * @param power offensive stat
   * @param bclass battle class
   * @param pdef physical defense stat
   * @param mdef magical defense stat
   * @param arrows list of atk/def arrows
-  * @param id unique identifier
   */
 final case class Card private (
     ownerId: Player.Id,
-    cardType: CardClass.Id,
+    cardClassId: CardClass.Id,
     power: Power,
     bclass: BattleClass,
     pdef: PhysicalDef,
     mdef: MagicalDef,
-    arrows: List[Arrow],
-    id: Card.Id
+    arrows: List[Arrow]
 )
 
 object Card {
   @newtype case class Power(toInt: Int)
   @newtype case class PhysicalDef(toInt: Int)
   @newtype case class MagicalDef(toInt: Int)
+  @newtype case class Id(toUUID: UUID)
 
   def apply(
       ownerId: Player.Id,
@@ -68,11 +67,8 @@ object Card {
     //  require(pdef < gameSettings.CARD_MAX_LEVEL)
     //  require(mdef < gameSettings.CARD_MAX_LEVEL)
 
-    Option.when(Arrow.checkArrows(arrows)) {
-      val cardId = Card.Id(UUID.V4.random)
-      new Card(ownerId, cardType, power, bclass, pdef, mdef, arrows, cardId)
-    }
+    Option.when(Arrow.checkArrows(arrows))(
+      new Card(ownerId, cardType, power, bclass, pdef, mdef, arrows)
+    )
   }
-
-  @newtype case class Id(toUUID: UUID)
 }

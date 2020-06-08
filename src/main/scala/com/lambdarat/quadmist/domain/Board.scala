@@ -22,7 +22,7 @@ object Square extends Enum[Square] {
   case object Free extends Square { override def toString = "F" }
 
   case class Occupied(card: Card, color: Color) extends Square {
-    override def toString = s"${card.id},${color}"
+    override def toString = s"${card.cardClassId},${color}"
   }
 
 }

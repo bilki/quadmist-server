@@ -17,8 +17,8 @@ import java.time.Instant
   * @param atkWinner true if attacker was the winner of the fight
   */
 final case class Fight(
-    attacker: Card.Id,
-    defender: Card.Id,
+    attacker: Card,
+    defender: Card,
     atkPoints: AttackerPoints,
     defPoints: DefenderPoints,
     atkWinner: AttackerWins,
