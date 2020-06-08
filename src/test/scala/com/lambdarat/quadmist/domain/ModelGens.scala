@@ -38,7 +38,8 @@ object ModelGens {
       mdef        <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1).map(MagicalDef.apply)
       arrows      <- arrowsGenerator
       cardClassId <- uuidArb.arbitrary.map(CardClass.Id.apply)
-      maybeCard    = Card(ownerId, cardClassId, power, battleClass, pdef, mdef, arrows)
+      maybeCard    = Card.create(ownerId, cardClassId, power, battleClass, pdef, mdef, arrows)
+      mycard       = Card(ownerId, cardClassId, power, battleClass, pdef, mdef, arrows)
       card        <- unwrapOptGen(maybeCard)
     } yield card
 

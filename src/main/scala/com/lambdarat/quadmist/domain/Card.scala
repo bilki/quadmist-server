@@ -1,6 +1,7 @@
 package com.lambdarat.quadmist.domain
 
 import com.lambdarat.quadmist.domain.Card.{MagicalDef, PhysicalDef, Power}
+import com.lambdarat.quadmist.engines.GameSettings
 
 import enumeratum._
 import io.estatico.newtype.macros.newtype
@@ -38,7 +39,7 @@ object BattleClass extends Enum[BattleClass] {
   * @param mdef magical defense stat
   * @param arrows list of atk/def arrows
   */
-final case class Card private (
+final case class Card(
     ownerId: Player.Id,
     cardClassId: CardClass.Id,
     power: Power,
@@ -54,7 +55,7 @@ object Card {
   @newtype case class MagicalDef(toInt: Int)
   @newtype case class Id(toUUID: UUID)
 
-  def apply(
+  def create(
       ownerId: Player.Id,
       cardType: CardClass.Id,
       power: Power,
@@ -62,12 +63,14 @@ object Card {
       pdef: PhysicalDef,
       mdef: MagicalDef,
       arrows: List[Arrow]
-  ): Option[Card] = {
-    //  require(power < gameSettings.CARD_MAX_LEVEL)
-    //  require(pdef < gameSettings.CARD_MAX_LEVEL)
-    //  require(mdef < gameSettings.CARD_MAX_LEVEL)
+  )(implicit gameSettings: GameSettings): Option[Card] = {
+    val requirements =
+      power.toInt < gameSettings.CARD_MAX_LEVEL &&
+        pdef.toInt < gameSettings.CARD_MAX_LEVEL &&
+        mdef.toInt < gameSettings.CARD_MAX_LEVEL &&
+        Arrow.checkArrows(arrows)
 
-    Option.when(Arrow.checkArrows(arrows))(
+    Option.when(requirements)(
       new Card(ownerId, cardType, power, bclass, pdef, mdef, arrows)
     )
   }
