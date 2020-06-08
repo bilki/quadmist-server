@@ -1,12 +1,48 @@
 package com.lambdarat.quadmist.engines
 
-import com.lambdarat.quadmist.domain.{Arrow, Card, Fight}
+import com.lambdarat.quadmist.domain.BattleClass.{Assault, Flexible, Magical, Physical}
+import com.lambdarat.quadmist.domain.Fight.{AttackerPoints, AttackerWins, DefenderPoints}
+import com.lambdarat.quadmist.domain._
 
-import cats.syntax.either._
 import scala.math.{max, min}
 import scala.util.Random
 
 trait FightEngine {
+
+  private def arrowCombat(attacker: Card, defender: Card, gameSettings: GameSettings): Fight = {
+    def hitPoints(stat: Int): Int = stat * gameSettings.CARD_MAX_LEVEL
+
+    // Battle maths
+    def statVs(atkStat: Int, defStat: Int): (Int, Int) = {
+      val p1atk = hitPoints(atkStat) + Random.nextInt(gameSettings.CARD_MAX_LEVEL)
+      val p2def = hitPoints(defStat) + Random.nextInt(gameSettings.CARD_MAX_LEVEL)
+      (p1atk - Random.nextInt(p1atk + 1), p2def - Random.nextInt(p2def + 1))
+    }
+
+    val attackerId = attacker.id
+    val defenderId = defender.id
+
+    val (atkStat, defStat) = attacker.bclass match {
+      case Physical => (attacker.power.toInt, defender.pdef.toInt)
+      case Magical  => (attacker.power.toInt, defender.mdef.toInt)
+      case Flexible => (attacker.power.toInt, min(defender.pdef.toInt, defender.mdef.toInt))
+      case Assault  =>
+        (
+          max(max(attacker.power.toInt, attacker.pdef.toInt), attacker.mdef.toInt),
+          min(min(defender.power.toInt, defender.pdef.toInt), defender.mdef.toInt)
+        )
+    }
+
+    val (atkScore, defScore) = statVs(atkStat, defStat)
+
+    Fight(
+      attackerId,
+      defenderId,
+      AttackerPoints(atkScore),
+      DefenderPoints(defScore),
+      AttackerWins(atkScore > defScore)
+    )
+  }
 
   /**
     * Challenge another card.
@@ -21,57 +57,22 @@ trait FightEngine {
       defender: Card,
       side: Arrow
   )(implicit gameSettings: GameSettings): Either[String, Fight] = {
-    import com.lambdarat.quadmist.domain.BattleClass._
+    val attackerId = attacker.id
+    val defenderId = defender.id
 
     // Fight!!
-    lazy val possibleFight = for {
-      attackerId <- attacker.id
-      defenderId <- defender.id
-    } yield {
-
-      if (defender.arrows.contains(side.opposite)) {
-        val (atkStat, defStat) = attacker.bclass match {
-          case Physical => (attacker.power, defender.pdef)
-          case Magical  => (attacker.power, defender.mdef)
-          case Flexible => (attacker.power, min(defender.pdef, defender.mdef))
-          case Assault =>
-            (
-              max(max(attacker.power, attacker.pdef), attacker.mdef),
-              min(min(defender.power, defender.pdef), defender.mdef)
-            )
-        }
-
-        lazy val (atkScore, defScore) = statVs(atkStat, defStat)
-
-        def hitPoints(stat: Int): Int = stat * gameSettings.CARD_MAX_LEVEL
-
-        // Battle maths
-        def statVs(atkStat: Int, defStat: Int): (Int, Int) = {
-          val p1atk = hitPoints(atkStat) + Random.nextInt(gameSettings.CARD_MAX_LEVEL)
-          val p2def = hitPoints(defStat) + Random.nextInt(gameSettings.CARD_MAX_LEVEL)
-          (p1atk - Random.nextInt(p1atk + 1), p2def - Random.nextInt(p2def + 1))
-        }
-
-        Fight(attackerId, defenderId, atkScore, defScore, atkScore > defScore)
-      } else {
-        // Instant win
-        Fight(attackerId, defenderId, 0, 0, atkWinner = true)
-      }
+    val fightResult = if (defender.arrows.contains(side.opposite)) {
+      arrowCombat(attacker, defender, gameSettings)
+    } else {
+      // Instant win, no defender arrow
+      Fight(attackerId, defenderId, AttackerPoints(0), DefenderPoints(0), AttackerWins(true))
     }
 
-    for {
-      // We need an arrow pointing to the other card
-      _ <- Either.cond(
-        attacker.arrows.contains(side), {},
-        s"Attacker does not contain $side arrow "
-      )
-      fight <- Either.fromOption(
-        possibleFight,
-        s"AttackerId=${attacker.id}, DefenderId=${defender.id}"
-      )
-    } yield {
-      fight
-    }
+    Either.cond(
+      attacker.arrows.contains(side),
+      fightResult,
+      s"Attacker does not contain $side arrow "
+    )
   }
 
 }

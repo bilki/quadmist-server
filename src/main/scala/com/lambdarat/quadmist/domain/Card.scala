@@ -1,6 +1,10 @@
 package com.lambdarat.quadmist.domain
 
+import com.lambdarat.quadmist.domain.Card.{MagicalDef, PhysicalDef, Power}
+
 import enumeratum._
+import io.estatico.newtype.macros.newtype
+import memeid.UUID
 
 /**
   * Battle class of the card.
@@ -35,26 +39,40 @@ object BattleClass extends Enum[BattleClass] {
   * @param arrows list of atk/def arrows
   * @param id unique identifier
   */
-final case class Card(
+final case class Card private (
     ownerId: Player.Id,
     cardType: CardClass.Id,
-    power: Int,
+    power: Power,
     bclass: BattleClass,
-    pdef: Int,
-    mdef: Int,
+    pdef: PhysicalDef,
+    mdef: MagicalDef,
     arrows: List[Arrow],
-    id: Option[Card.Id] = None
-) {
-
-//  require(power < gameSettings.CARD_MAX_LEVEL)
-//  require(pdef < gameSettings.CARD_MAX_LEVEL)
-//  require(mdef < gameSettings.CARD_MAX_LEVEL)
-  require(arrows.distinct.size == arrows.size && arrows.size <= Arrow.MAX_ARROWS)
-
-}
+    id: Card.Id
+)
 
 object Card {
+  @newtype case class Power(toInt: Int)
+  @newtype case class PhysicalDef(toInt: Int)
+  @newtype case class MagicalDef(toInt: Int)
 
-  case class Id(value: Int) extends AnyVal
+  def apply(
+      ownerId: Player.Id,
+      cardType: CardClass.Id,
+      power: Power,
+      bclass: BattleClass,
+      pdef: PhysicalDef,
+      mdef: MagicalDef,
+      arrows: List[Arrow]
+  ): Option[Card] = {
+    //  require(power < gameSettings.CARD_MAX_LEVEL)
+    //  require(pdef < gameSettings.CARD_MAX_LEVEL)
+    //  require(mdef < gameSettings.CARD_MAX_LEVEL)
 
+    Option.when(Arrow.checkArrows(arrows)) {
+      val cardId = Card.Id(UUID.V4.random)
+      new Card(ownerId, cardType, power, bclass, pdef, mdef, arrows, cardId)
+    }
+  }
+
+  @newtype case class Id(toUUID: UUID)
 }

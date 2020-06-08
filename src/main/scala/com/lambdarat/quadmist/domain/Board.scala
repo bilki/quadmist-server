@@ -1,9 +1,12 @@
 package com.lambdarat.quadmist.domain
 
-import com.lambdarat.quadmist.domain.Board.{Grid, Hand}
+import com.lambdarat.quadmist.domain.Board.{BoardMaxBlocks, BoardSize, Grid, Hand, XAxis, YAxis}
 import com.lambdarat.quadmist.domain.Common.Color
 
 import enumeratum._
+import io.estatico.newtype.macros.newtype
+
+import cats.Show
 
 /**
   * Possible states of a square.
@@ -24,9 +27,6 @@ object Square extends Enum[Square] {
 
 }
 
-case class BoardSize(value: Int)      extends AnyVal
-case class BoardMaxBlocks(value: Int) extends AnyVal
-
 case class BoardSettings(size: BoardSize, maxBlocks: BoardMaxBlocks)
 
 final case class Board(
@@ -34,25 +34,26 @@ final case class Board(
     redHand: Hand,
     blueHand: Hand,
     settings: BoardSettings
-) {
-  override def toString = grid.map(row => row.mkString(" ")).mkString("\n")
-}
-
-case class XAxis(value: Int) extends AnyVal
-case class YAxis(value: Int) extends AnyVal
+)
 
 case class Coordinates(x: XAxis, y: YAxis)
 
 object Board {
-  type Hand = Set[Card]
-  type Grid = Array[Array[Square]]
+  @newtype case class BoardSize(toInt: Int)
+  @newtype case class BoardMaxBlocks(toInt: Int)
 
-  implicit class SafeGridAccess(grid: Grid) {
+  @newtype case class XAxis(toInt: Int)
+  @newtype case class YAxis(toInt: Int)
 
-    def coords(xAxis: XAxis)(yAxis: YAxis): Square = grid(xAxis.value)(yAxis.value)
+  @newtype case class Hand(cards: Set[Card])
+  @newtype case class Grid(squares: Array[Array[Square]])
 
-    def update(xAxis: XAxis)(yAxis: YAxis)(value: Square): Unit =
-      grid(xAxis.value)(yAxis.value) = value
+  implicit val showBoard: Show[Board] =
+    Show[Board](_.grid.squares.map(row => row.mkString(" ")).mkString(System.lineSeparator))
 
+  implicit class GridAccess(grid: Grid) {
+    def getSquare(x: XAxis)(y: YAxis): Square               = grid.squares(x.toInt)(y.toInt)
+    def setSquare(x: XAxis)(y: YAxis)(square: Square): Unit =
+      grid.squares(x.toInt)(y.toInt) = square
   }
 }

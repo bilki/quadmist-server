@@ -1,5 +1,6 @@
 package com.lambdarat.quadmist.domain
 
+import com.lambdarat.quadmist.domain.Board.{BoardMaxBlocks, BoardSize}
 import com.lambdarat.quadmist.domain.ModelGens._
 import com.lambdarat.quadmist.domain.Square.Block
 import com.lambdarat.quadmist.engines.GameSettings
@@ -20,25 +21,15 @@ class BoardSpec extends ModelSpec {
     "created" should {
       "have the size specified" in {
         forAll { board: Board =>
-          board.grid.length shouldBe boardSettings.size.value
+          board.grid.squares.length shouldBe boardSettings.size.toInt
         }
       }
 
       "have a number of blocks less or equal than max blocks" in {
         forAll { board: Board =>
-          lazy val numBlocks: Int = board.grid.foldLeft(0)(sumTotalRows)
+          val numBlocks: Int = board.grid.squares.flatten.collect { case Block => 1 }.sum
 
-          def sumTotalRows(total: Int, row: Array[Square]): Int = {
-            lazy val rowBlocks = row.foldLeft(0)(sumRow)
-            total + rowBlocks
-          }
-
-          def sumRow(blocks: Int, cell: Square): Int = cell match {
-            case Block => blocks + 1
-            case _     => blocks
-          }
-
-          numBlocks should be <= boardSettings.maxBlocks.value
+          numBlocks should be <= boardSettings.maxBlocks.toInt
         }
       }
     }

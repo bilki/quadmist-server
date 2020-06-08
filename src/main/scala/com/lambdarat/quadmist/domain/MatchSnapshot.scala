@@ -13,14 +13,15 @@ final case class MatchSnapshot private (
     board: Board,
     fights: List[Fight],
     id: MatchSnapshot.Id
-)
+) {
+  private def copy(): Unit = {}
+}
 
 object MatchSnapshot {
+  @newtype case class Id(toUUID: UUID)
 
   def apply(board: Board, fights: List[Fight]): MatchSnapshot = {
     val uniqueId = Id(UUID.V4.random)
     MatchSnapshot(board, fights, uniqueId)
   }
-
-  @newtype case class Id(value: UUID)
 }

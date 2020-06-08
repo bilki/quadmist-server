@@ -1,5 +1,10 @@
 package com.lambdarat.quadmist.domain
 
+import com.lambdarat.quadmist.domain.Fight.{AttackerPoints, AttackerWins, DefenderPoints}
+
+import io.estatico.newtype.macros.newtype
+import memeid4s.UUID
+
 import java.time.Instant
 
 /**
@@ -14,14 +19,15 @@ import java.time.Instant
 final case class Fight(
     attacker: Card.Id,
     defender: Card.Id,
-    atkPoints: Int,
-    defPoints: Int,
-    atkWinner: Boolean,
+    atkPoints: AttackerPoints,
+    defPoints: DefenderPoints,
+    atkWinner: AttackerWins,
     dateTime: Instant = Instant.now
 )
 
 object Fight {
-
-  case class Id(value: String) extends AnyVal
-
+  @newtype case class AttackerPoints(toInt: Int)
+  @newtype case class DefenderPoints(toInt: Int)
+  @newtype case class AttackerWins(toBool: Boolean)
+  @newtype case class Id(toUUID: UUID)
 }

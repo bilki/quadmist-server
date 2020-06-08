@@ -1,5 +1,8 @@
 package com.lambdarat.quadmist.domain
 
+import io.estatico.newtype.macros.newtype
+import memeid4s.UUID
+
 /**
   * A game player.
   *
@@ -9,7 +12,5 @@ package com.lambdarat.quadmist.domain
 final case class Player(id: Player.Id, cards: List[Card.Id])
 
 object Player {
-
-  case class Id(value: Int) extends AnyVal
-
+  @newtype case class Id(toUUID: UUID)
 }

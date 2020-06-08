@@ -14,19 +14,19 @@ class CardSpec extends ModelSpec {
     "created" should {
       "have correct power level according to game settings" in {
         forAll { card: Card =>
-          card.power should be < defaultGameSettings.CARD_MAX_LEVEL
+          card.power.toInt should be < defaultGameSettings.CARD_MAX_LEVEL
         }
       }
 
       "have correct physical defense level according to game settings" in {
         forAll { card: Card =>
-          card.pdef should be < defaultGameSettings.CARD_MAX_LEVEL
+          card.pdef.toInt should be < defaultGameSettings.CARD_MAX_LEVEL
         }
       }
 
       "have correct magic defense level according to game settings" in {
         forAll { card: Card =>
-          card.mdef should be < defaultGameSettings.CARD_MAX_LEVEL
+          card.mdef.toInt should be < defaultGameSettings.CARD_MAX_LEVEL
         }
       }
 

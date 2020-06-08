@@ -1,23 +1,17 @@
 package com.lambdarat.quadmist.domain
 
 import com.lambdarat.quadmist.domain.BattleClass.{Assault, Flexible, Magical, Physical}
+import com.lambdarat.quadmist.domain.Board.Hand
+import com.lambdarat.quadmist.domain.Card.{MagicalDef, PhysicalDef, Power}
 import com.lambdarat.quadmist.engines.{GameSettings, board}
 
+import memeid4s.UUID
 import org.scalacheck.{Arbitrary, Gen}
-
-import java.net.URL
 
 object ModelGens {
 
-  private val urlProtocol = "http://"
-
-  private val cardClassGenerator: Gen[CardClass] = for {
-    id   <- Gen.choose(0, Int.MaxValue)
-    name <- Gen.alphaStr
-    img  <- Gen.alphaStr
-  } yield {
-    CardClass(CardClass.Name(name), new URL(urlProtocol + img), Some(CardClass.Id(id)))
-  }
+  private val cardClassGenerator: Gen[CardClass] =
+    Gen.alphaStr.map(name => CardClass(CardClass.Name(name)))
 
   private val battleClassGenerator: Gen[BattleClass] =
     Gen.oneOf(Physical, Magical, Flexible, Assault)
@@ -33,35 +27,25 @@ object ModelGens {
 
   private def cardGenerator(implicit gameSettings: GameSettings): Gen[Card] =
     for {
-      id          <- Gen.choose(0, Int.MaxValue)
-      ownerId     <- Gen.choose(0, Int.MaxValue)
+      ownerId     <- Gen.const(UUID.V4.random).map(Player.Id.apply)
       cardClass   <- cardClassGenerator
-      power       <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1)
+      power       <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1).map(Power.apply)
       battleClass <- battleClassGenerator
-      pdef        <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1)
-      mdef        <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1)
+      pdef        <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1).map(PhysicalDef.apply)
+      mdef        <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1).map(MagicalDef.apply)
       arrows      <- arrowsGenerator
-    } yield {
-      Card(
-        Player.Id(ownerId),
-        cardClass.id.get,
-        power,
-        battleClass,
-        pdef,
-        mdef,
-        arrows.toList,
-        Some(Card.Id(id))
-      )
-    }
+      maybeCard    = Card(ownerId, cardClass.id, power, battleClass, pdef, mdef, arrows)
+      card        <- maybeCard.fold[Gen[Card]](Gen.fail)(Gen.const)
+    } yield card
 
   implicit def cards(implicit gameSettings: GameSettings): Arbitrary[Card] =
     Arbitrary(cardGenerator)
 
-  private def handGenerator(implicit gameSettings: GameSettings): Gen[Set[Card]] =
-    Gen.containerOfN[Set, Card](gameSettings.MAX_HAND_CARDS, cardGenerator)
+  private def handGenerator(implicit gameSettings: GameSettings): Gen[Hand] =
+    Gen.containerOfN[Set, Card](gameSettings.MAX_HAND_CARDS, cardGenerator).map(Hand.apply)
 
-  private def boardGenerator(
-      implicit boardSettings: BoardSettings,
+  private def boardGenerator(implicit
+      boardSettings: BoardSettings,
       gameSettings: GameSettings
   ): Gen[Board] =
     for {
@@ -69,14 +53,14 @@ object ModelGens {
       blueHand <- handGenerator
     } yield board.random(redHand, blueHand, boardSettings)
 
-  implicit def boards(
-      implicit boardSettings: BoardSettings,
+  implicit def boards(implicit
+      boardSettings: BoardSettings,
       gameSettings: GameSettings
   ): Arbitrary[Board] = {
     Arbitrary(boardGenerator)
   }
 
-  private val playerIdGenerator: Gen[Player.Id] = Gen.choose(0, Int.MaxValue).map(Player.Id.apply)
+  private val playerIdGenerator: Gen[Player.Id] = Gen.const(Player.Id(UUID.V4.random))
 
   implicit val playerIds: Arbitrary[Player.Id] = Arbitrary(playerIdGenerator)
 }

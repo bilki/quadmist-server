@@ -6,7 +6,7 @@ import cats.syntax.option._
 
 class ArrowSpec extends ModelSpec {
   val zeroByte: Byte = 0x00
-  val maxByte: Byte  = 0xFF.toByte
+  val maxByte: Byte  = 0xff.toByte
 
   "A packed arrows" when {
     "zero" should {
