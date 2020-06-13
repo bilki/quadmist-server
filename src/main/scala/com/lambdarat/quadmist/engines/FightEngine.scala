@@ -9,7 +9,12 @@ import scala.util.Random
 
 trait FightEngine {
 
-  private def arrowCombat(attacker: Card, defender: Card, gameSettings: GameSettings): Fight = {
+  private def arrowCombat(
+      attacker: Attacker,
+      defender: Defender,
+      side: Arrow,
+      gameSettings: GameSettings
+  ): Fight = {
     def hitPoints(stat: Int): Int = stat * gameSettings.CARD_MAX_LEVEL
 
     // Battle maths
@@ -19,14 +24,17 @@ trait FightEngine {
       (p1atk - Random.nextInt(p1atk + 1), p2def - Random.nextInt(p2def + 1))
     }
 
-    val (atkStat, defStat) = attacker.bclass match {
-      case Physical => (attacker.power.toInt, defender.pdef.toInt)
-      case Magical  => (attacker.power.toInt, defender.mdef.toInt)
-      case Flexible => (attacker.power.toInt, min(defender.pdef.toInt, defender.mdef.toInt))
+    val atkCard = attacker.card
+    val defCard = defender.card
+
+    val (atkStat, defStat) = atkCard.bclass match {
+      case Physical => (atkCard.power.toInt, defCard.pdef.toInt)
+      case Magical  => (atkCard.power.toInt, defCard.mdef.toInt)
+      case Flexible => (atkCard.power.toInt, min(defCard.pdef.toInt, defCard.mdef.toInt))
       case Assault  =>
         (
-          max(max(attacker.power.toInt, attacker.pdef.toInt), attacker.mdef.toInt),
-          min(min(defender.power.toInt, defender.pdef.toInt), defender.mdef.toInt)
+          max(max(atkCard.power.toInt, atkCard.pdef.toInt), atkCard.mdef.toInt),
+          min(min(defCard.power.toInt, defCard.pdef.toInt), defCard.mdef.toInt)
         )
     }
 
@@ -35,6 +43,7 @@ trait FightEngine {
     Fight(
       attacker,
       defender,
+      side,
       AttackerPoints(atkScore),
       DefenderPoints(defScore),
       AttackerWins(atkScore > defScore)
@@ -50,20 +59,20 @@ trait FightEngine {
     * @return a fight result
     */
   def fight(
-      attacker: Card,
-      defender: Card,
+      attacker: Attacker,
+      defender: Defender,
       side: Arrow
   )(implicit gameSettings: GameSettings): Either[String, Fight] = {
     // Fight!!
-    val fightResult = if (defender.arrows.contains(side.opposite)) {
-      arrowCombat(attacker, defender, gameSettings)
+    lazy val fightResult = if (defender.card.arrows.contains(side.opposite)) {
+      arrowCombat(attacker, defender, side, gameSettings)
     } else {
       // Instant win, no defender arrow
-      Fight(attacker, defender, AttackerPoints(0), DefenderPoints(0), AttackerWins(true))
+      Fight(attacker, defender, side, AttackerPoints(0), DefenderPoints(0), AttackerWins(true))
     }
 
     Either.cond(
-      attacker.arrows.contains(side),
+      attacker.card.arrows.contains(side),
       fightResult,
       s"Attacker does not contain $side arrow "
     )

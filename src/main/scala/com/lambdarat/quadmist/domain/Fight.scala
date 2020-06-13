@@ -5,24 +5,27 @@ import com.lambdarat.quadmist.domain.Fight.{AttackerPoints, AttackerWins, Defend
 import io.estatico.newtype.macros.newtype
 import memeid4s.UUID
 
-import java.time.Instant
+case class Attacker(card: Card, coordinates: Coordinates)
+
+case class Defender(card: Card, coordinates: Coordinates)
 
 /**
   * Result of a card fight.
   *
   * @param attacker card attacking
   * @param defender card defending
+  * @param target direction of the attack
   * @param atkPoints points of the attack
   * @param defPoints points of the defense
   * @param atkWinner true if attacker was the winner of the fight
   */
 final case class Fight(
-    attacker: Card,
-    defender: Card,
+    attacker: Attacker,
+    defender: Defender,
+    target: Arrow,
     atkPoints: AttackerPoints,
     defPoints: DefenderPoints,
-    atkWinner: AttackerWins,
-    dateTime: Instant = Instant.now
+    atkWinner: AttackerWins
 )
 
 object Fight {
