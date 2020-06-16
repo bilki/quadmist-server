@@ -27,18 +27,18 @@ trait BoardEngine {
 
     // Occupied card must be part of the hand of the selected player
     require(
-      (board.redHand.cards.contains(occupied.card) && player == Red) ||
-        (board.blueHand.cards.contains(occupied.card) && player == Blue)
+      (board.redHand.contains(occupied.card) && player == Red) ||
+        (board.blueHand.contains(occupied.card) && player == Blue)
     )
 
     board.grid.setSquare(newCoords.x)(newCoords.y)(occupied)
 
     val (newRed, newBlue) = player match {
-      case Red  => (Hand(board.redHand.cards - occupied.card), board.blueHand)
-      case Blue => (board.redHand, Hand(board.blueHand.cards - occupied.card))
+      case Red  => (board.redHand - occupied.card, board.blueHand)
+      case Blue => (board.redHand, board.blueHand - occupied.card)
     }
 
-    val newGrid = Grid(board.grid.squares.clone)
+    val newGrid = board.grid.clone
 
     board.copy(grid = newGrid, redHand = newRed, blueHand = newBlue)
   }
@@ -56,12 +56,12 @@ trait BoardEngine {
     require(board.grid.getSquare(coords.x)(coords.y).isInstanceOf[Occupied])
 
     board.grid.getSquare(coords.x)(coords.y) match {
-      case Occupied(card, color) =>
-        board.grid.setSquare(coords.x)(coords.y)(Occupied(card, color.flip))
-      case Block | Free          => // ERROR
+      case Occupied(id, card, color) =>
+        board.grid.setSquare(coords.x)(coords.y)(Occupied(id, card, color.flip))
+      case Block | Free              => // ERROR
     }
 
-    val newGrid = Grid(board.grid.squares.clone)
+    val newGrid = board.grid.clone
 
     board.copy(grid = newGrid)
   }
@@ -78,7 +78,7 @@ trait BoardEngine {
       .filter(coords => areValidCoords(board, coords))
       .map(coords => flip(board, coords))
 
-    val newGrid = Grid(board.grid.squares.clone)
+    val newGrid = board.grid.clone
     board.copy(grid = newGrid)
   }
 
@@ -95,19 +95,19 @@ trait BoardEngine {
     require(board.grid.getSquare(coords.x)(coords.y).isInstanceOf[Occupied])
 
     board.grid.getSquare(coords.x)(coords.y) match {
-      case Occupied(card, color) =>
+      case Occupied(_, card, color) =>
         card.arrows
           .map(arrow => (arrow, Arrow.target(arrow, coords)))
           .filter { case (_, coords: Coordinates) => areValidCoords(board, coords) }
           .collect {
             case (arrow, arrowCoord) =>
               board.grid.getSquare(arrowCoord.x)(arrowCoord.y) match {
-                case Occupied(enemyCard, enemyColor) if color != enemyColor =>
+                case Occupied(_, enemyCard, enemyColor) if color != enemyColor =>
                   (enemyCard, arrow)
               }
           }
 
-      case Block | Free          => List.empty // Maybe error
+      case Block | Free             => List.empty // Maybe error
     }
   }
 
@@ -119,9 +119,9 @@ trait BoardEngine {
     * @return a list with all the cards on the board with that color
     */
   def cardsOf(board: Board, color: Color): List[Card] = {
-    (board.grid.squares flatMap { row =>
+    (board.grid flatMap { row =>
       row.collect {
-        case Occupied(card, sqColor) if sqColor == color => card
+        case Occupied(_, card, sqColor) if sqColor == color => card
       }
     }).toList
 
@@ -157,14 +157,14 @@ trait BoardEngine {
     }
 
     // Create a new grid of Free squares and then throw in the random blocks
-    val squares: Array[Array[Square]] =
+    val squares: Grid =
       Array.fill(boardSettings.size.toInt, boardSettings.size.toInt)(Free)
 
     coords.take(randomBlocks).foreach {
       case (i, j) => squares(i)(j) = Block
     }
 
-    Board(Grid(squares), redPlayer, bluePlayer, boardSettings)
+    Board(squares, redPlayer, bluePlayer, boardSettings)
   }
 
 }

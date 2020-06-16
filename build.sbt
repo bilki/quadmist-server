@@ -6,13 +6,16 @@ organization in ThisBuild := "com.lambdarat"
 lazy val quadmist = (project in file("."))
   .settings(
     libraryDependencies ++= Seq(
-      memeid,
+      simulacrum,
+      slf4jSimple,
       newtype,
-      enumeratum,
       mouse,
       scalacheck % Test
-    ) ++ scalatest ++ cats,
+    ) ++ circe ++ memeid ++ enumeratum ++ scalatest ++ cats ++ http4s,
     kindProjector
   )
 
-scalacOptions += "-Ymacro-annotations"
+scalacOptions ++= Seq(
+  "-Ymacro-annotations",
+  "-language:higherKinds"
+)

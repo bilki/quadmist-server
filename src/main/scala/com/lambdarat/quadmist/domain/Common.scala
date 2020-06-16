@@ -1,22 +1,19 @@
 package com.lambdarat.quadmist.domain
 
-import enumeratum.{Enum, EnumEntry}
+import enumeratum.values.{StringCirceEnum, StringEnum, StringEnumEntry}
 
 object Common {
 
   /**
     * Possible colors inside game.
     */
-  sealed trait Color extends EnumEntry { def flip: Color }
+  sealed abstract class Color(val value: String) extends StringEnumEntry { def flip: Color }
 
-  object Color extends Enum[Color] {
-
+  object Color extends StringEnum[Color] with StringCirceEnum[Color] {
     val values = findValues
 
-    case object Red extends Color { def flip: Color = Blue }
-
-    case object Blue extends Color { def flip: Color = Red }
-
+    case object Red  extends Color("red")  { def flip: Color = Blue }
+    case object Blue extends Color("blue") { def flip: Color = Red  }
   }
 
 }

@@ -6,10 +6,10 @@ import com.lambdarat.quadmist.engines.GameSettings
 class CardSpec extends ModelSpec {
 
   "A card" when {
-    implicit val defaultGameSettings: GameSettings = new GameSettings {
-      override val CARD_MAX_LEVEL: Int = 16
-      override val MAX_HAND_CARDS: Int = 5
-    }
+    implicit val defaultGameSettings: GameSettings = new GameSettings(
+      CARD_MAX_LEVEL = 16,
+      MAX_HAND_CARDS = 5
+    )
 
     "created" should {
       "have correct power level according to game settings" in {

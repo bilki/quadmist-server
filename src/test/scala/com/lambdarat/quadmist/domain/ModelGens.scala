@@ -31,15 +31,12 @@ object ModelGens {
 
   private def cardGenerator(implicit gameSettings: GameSettings): Gen[Card] =
     for {
-      ownerId     <- uuidArb.arbitrary.map(Player.Id.apply)
       power       <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1).map(Power.apply)
       battleClass <- battleClassGenerator
       pdef        <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1).map(PhysicalDef.apply)
       mdef        <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1).map(MagicalDef.apply)
       arrows      <- arrowsGenerator
-      cardClassId <- uuidArb.arbitrary.map(CardClass.Id.apply)
-      maybeCard    = Card.create(ownerId, cardClassId, power, battleClass, pdef, mdef, arrows)
-      mycard       = Card(ownerId, cardClassId, power, battleClass, pdef, mdef, arrows)
+      maybeCard    = Card.create(power, battleClass, pdef, mdef, arrows)
       card        <- unwrapOptGen(maybeCard)
     } yield card
 
@@ -47,7 +44,7 @@ object ModelGens {
     Arbitrary(cardGenerator)
 
   private def handGenerator(implicit gameSettings: GameSettings): Gen[Hand] =
-    Gen.containerOfN[Set, Card](gameSettings.MAX_HAND_CARDS, cardGenerator).map(Hand.apply)
+    Gen.containerOfN[Set, Card](gameSettings.MAX_HAND_CARDS, cardGenerator)
 
   private def boardGenerator(implicit
       boardSettings: BoardSettings,

@@ -31,8 +31,6 @@ object BattleClass extends Enum[BattleClass] {
 /**
   * Unique card instance.
   *
-  * @param ownerId player identifier
-  * @param cardClassId type of card
   * @param power offensive stat
   * @param bclass battle class
   * @param pdef physical defense stat
@@ -40,8 +38,6 @@ object BattleClass extends Enum[BattleClass] {
   * @param arrows list of atk/def arrows
   */
 final case class Card(
-    ownerId: Player.Id,
-    cardClassId: CardClass.Id,
     power: Power,
     bclass: BattleClass,
     pdef: PhysicalDef,
@@ -56,8 +52,6 @@ object Card {
   @newtype case class Id(toUUID: UUID)
 
   def create(
-      ownerId: Player.Id,
-      cardType: CardClass.Id,
       power: Power,
       bclass: BattleClass,
       pdef: PhysicalDef,
@@ -71,7 +65,7 @@ object Card {
         Arrow.checkArrows(arrows)
 
     Option.when(requirements)(
-      new Card(ownerId, cardType, power, bclass, pdef, mdef, arrows)
+      new Card(power, bclass, pdef, mdef, arrows)
     )
   }
 }

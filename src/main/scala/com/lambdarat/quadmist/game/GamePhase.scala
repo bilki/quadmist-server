@@ -7,8 +7,8 @@ sealed trait GamePhase extends EnumEntry
 object GamePhase extends Enum[GamePhase] {
   val values = findValues
 
-  case object Initial       extends GamePhase
-  case object PlayerOneTurn extends GamePhase
-  case object PlayerTwoTurn extends GamePhase
-  case object Finish        extends GamePhase
+  case object Initial        extends GamePhase
+  case object PlayerBlueTurn extends GamePhase
+  case object PlayerRedTurn  extends GamePhase
+  case object Finish         extends GamePhase
 }

@@ -3,7 +3,7 @@ package com.lambdarat.quadmist.domain
 import com.lambdarat.quadmist.domain.Board.{BoardMaxBlocks, BoardSize, Grid, Hand, XAxis, YAxis}
 import com.lambdarat.quadmist.domain.Common.Color
 
-import enumeratum._
+import enumeratum.{CirceEnum, Enum, EnumEntry}
 import io.estatico.newtype.macros.newtype
 
 import cats.Show
@@ -13,16 +13,14 @@ import cats.Show
   */
 sealed trait Square extends EnumEntry
 
-object Square extends Enum[Square] {
+object Square extends Enum[Square] with CirceEnum[Square] {
 
   val values = findValues
 
-  case object Block extends Square { override def toString = "B" }
-
-  case object Free extends Square { override def toString = "F" }
-
-  case class Occupied(card: Card, color: Color) extends Square {
-    override def toString = s"${card.cardClassId},${color}"
+  case object Block                                                   extends Square { override def toString = "B" }
+  case object Free                                                    extends Square { override def toString = "F" }
+  case class Occupied(cclass: CardClass.Id, card: Card, color: Color) extends Square {
+    override def toString = s"${cclass.toUUID},$card,$color"
   }
 
 }
@@ -45,15 +43,14 @@ object Board {
   @newtype case class XAxis(toInt: Int)
   @newtype case class YAxis(toInt: Int)
 
-  @newtype case class Hand(cards: Set[Card])
-  @newtype case class Grid(squares: Array[Array[Square]])
+  type Grid = Array[Array[Square]]
+  type Hand = Set[Card]
 
   implicit val showBoard: Show[Board] =
-    Show[Board](_.grid.squares.map(row => row.mkString(" ")).mkString(System.lineSeparator))
+    Show(_.grid.map(row => row.mkString("|")).mkString(System.lineSeparator))
 
   implicit class GridAccess(grid: Grid) {
-    def getSquare(x: XAxis)(y: YAxis): Square               = grid.squares(x.toInt)(y.toInt)
-    def setSquare(x: XAxis)(y: YAxis)(square: Square): Unit =
-      grid.squares(x.toInt)(y.toInt) = square
+    def getSquare(x: XAxis)(y: YAxis): Square               = grid(x.toInt)(y.toInt)
+    def setSquare(x: XAxis)(y: YAxis)(square: Square): Unit = grid(x.toInt)(y.toInt) = square
   }
 }
