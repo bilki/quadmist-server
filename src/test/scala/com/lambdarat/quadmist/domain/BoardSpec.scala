@@ -14,8 +14,8 @@ class BoardSpec extends ModelSpec {
     implicit val boardSettings: BoardSettings = BoardSettings(BOARD_SIZE, BOARD_MAX_BLOCKS)
 
     implicit val defaultGameSettings: GameSettings = new GameSettings(
-      CARD_MAX_LEVEL = 16,
-      MAX_HAND_CARDS = 5
+      cardMaxLevel = 16,
+      maxHandCards = 5
     )
 
     "created" should {

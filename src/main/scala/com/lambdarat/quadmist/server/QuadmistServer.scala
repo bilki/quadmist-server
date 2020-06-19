@@ -4,8 +4,9 @@ import com.lambdarat.quadmist.domain.Board.{BoardMaxBlocks, BoardSize}
 import com.lambdarat.quadmist.domain._
 import com.lambdarat.quadmist.engines._
 import com.lambdarat.quadmist.game.GamePhase.Initial
-import com.lambdarat.quadmist.game.{GameInfo, GameState, GameStateMachine, GameTurn, TurnState}
+import com.lambdarat.quadmist.game._
 import com.lambdarat.quadmist.repository.GameRepository
+import com.lambdarat.quadmist.server.QuadmistCommon._
 
 import fs2.Stream
 import fs2.concurrent.Topic
@@ -22,7 +23,6 @@ import cats.effect.{ConcurrentEffect, ContextShift, ExitCode, Timer}
 import cats.implicits._
 
 object QuadmistServer {
-
   val defaultSettings: BoardSettings = BoardSettings(
     BoardSize(4),
     BoardMaxBlocks(6)
@@ -52,9 +52,9 @@ object QuadmistServer {
     )
 
     for {
-      _                <- Stream.eval(QuadmistInit[F].init)
-      gameTopic        <- Stream.eval(Topic[F, TurnState](initialState))
-      gameInfo         <- Stream.eval(MVar[F].of(initialGameInfo))
+      _                <- QuadmistInit[F].init.toStream
+      gameTopic        <- Topic[F, TurnState](initialState).toStream
+      gameInfo         <- MVar[F].of(initialGameInfo).toStream
       httpApp           = QuadmistRoutes.service(gameInfo, gameTopic).orNotFound
       httpAppWithLogger = Logger.httpApp(true, true)(httpApp)
       exitCode         <- BlazeServerBuilder[F](global)

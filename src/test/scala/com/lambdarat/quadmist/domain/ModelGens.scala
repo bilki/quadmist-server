@@ -31,10 +31,10 @@ object ModelGens {
 
   private def cardGenerator(implicit gameSettings: GameSettings): Gen[Card] =
     for {
-      power       <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1).map(Power.apply)
+      power       <- Gen.choose(0, gameSettings.cardMaxLevel - 1).map(Power.apply)
       battleClass <- battleClassGenerator
-      pdef        <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1).map(PhysicalDef.apply)
-      mdef        <- Gen.choose(0, gameSettings.CARD_MAX_LEVEL - 1).map(MagicalDef.apply)
+      pdef        <- Gen.choose(0, gameSettings.cardMaxLevel - 1).map(PhysicalDef.apply)
+      mdef        <- Gen.choose(0, gameSettings.cardMaxLevel - 1).map(MagicalDef.apply)
       arrows      <- arrowsGenerator
       maybeCard    = Card.create(power, battleClass, pdef, mdef, arrows)
       card        <- unwrapOptGen(maybeCard)
@@ -44,7 +44,7 @@ object ModelGens {
     Arbitrary(cardGenerator)
 
   private def handGenerator(implicit gameSettings: GameSettings): Gen[Hand] =
-    Gen.containerOfN[Set, Card](gameSettings.MAX_HAND_CARDS, cardGenerator)
+    Gen.containerOfN[Set, Card](gameSettings.maxHandCards, cardGenerator)
 
   private def boardGenerator(implicit
       boardSettings: BoardSettings,

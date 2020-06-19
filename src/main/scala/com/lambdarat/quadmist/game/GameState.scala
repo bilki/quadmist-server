@@ -2,9 +2,6 @@ package com.lambdarat.quadmist.game
 
 import com.lambdarat.quadmist.domain.Board
 
-import io.estatico.newtype.macros.newtype
-import memeid4s.UUID
-
 /**
   * Turn description.
   *

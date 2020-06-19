@@ -8,7 +8,6 @@ import com.lambdarat.quadmist.domain._
 import scala.util.Random
 
 trait BoardEngine {
-
   import Board._
 
   /**

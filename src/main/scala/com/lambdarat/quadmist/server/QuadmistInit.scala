@@ -13,7 +13,6 @@ trait QuadmistInit[F[_]] {
 }
 
 object QuadmistInit {
-
   def apply[F[_]](implicit instance: QuadmistInit[F]): QuadmistInit[F] = instance
 
   implicit def quadmistInit[F[_]: Sync](implicit gr: GameRepository[F]): QuadmistInit[F] =

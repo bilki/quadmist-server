@@ -15,12 +15,12 @@ trait FightEngine {
       side: Arrow,
       gameSettings: GameSettings
   ): Fight = {
-    def hitPoints(stat: Int): Int = stat * gameSettings.CARD_MAX_LEVEL
+    def hitPoints(stat: Int): Int = stat * gameSettings.cardMaxLevel
 
     // Battle maths
     def statVs(atkStat: Int, defStat: Int): (Int, Int) = {
-      val p1atk = hitPoints(atkStat) + Random.nextInt(gameSettings.CARD_MAX_LEVEL)
-      val p2def = hitPoints(defStat) + Random.nextInt(gameSettings.CARD_MAX_LEVEL)
+      val p1atk = hitPoints(atkStat) + Random.nextInt(gameSettings.cardMaxLevel)
+      val p2def = hitPoints(defStat) + Random.nextInt(gameSettings.cardMaxLevel)
       (p1atk - Random.nextInt(p1atk + 1), p2def - Random.nextInt(p2def + 1))
     }
 

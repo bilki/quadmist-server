@@ -1,7 +1,6 @@
 package com.lambdarat.quadmist.game
 
 import com.lambdarat.quadmist.domain.Common.Color.{Blue, Red}
-import com.lambdarat.quadmist.game
 import com.lambdarat.quadmist.game.GameError.{InvalidTransition, PlayerSlotsFull}
 import com.lambdarat.quadmist.game.GameEvent.{
   GameFinished,
@@ -11,18 +10,17 @@ import com.lambdarat.quadmist.game.GameEvent.{
 }
 import com.lambdarat.quadmist.game.GamePhase.{Finish, Initial, PlayerBlueTurn, PlayerRedTurn}
 import com.lambdarat.quadmist.repository.GameRepository
+import com.lambdarat.quadmist.server.QuadmistCommon._
 
-import fs2.concurrent.Topic
 import fs2.{Pipe, Stream}
 
 import cats.effect.Sync
-import cats.effect.concurrent.MVar
 import cats.implicits._
 
 trait GameStateMachine[F[_]] {
   def transition(
-      gameInfoVar: MVar[F, GameInfo],
-      topic: Topic[F, TurnState]
+      gameInfoVar: Game[F],
+      topic: Turns[F]
   ): Pipe[F, GameEvent, Unit]
 }
 
@@ -59,20 +57,25 @@ object GameStateMachine {
     }
 
   implicit def stateMachine[F[_]: Sync: GameRepository]: GameStateMachine[F] =
-    (gameInfoVar: MVar[F, GameInfo], topic: Topic[F, TurnState]) =>
-      gameEvents =>
-        for {
-          gameInfo        <- Stream.eval(gameInfoVar.take)
-          event           <- gameEvents
-          f                = Sync[F]
-          gameInfoUpdated <- Stream.eval(chooseNextTransition(gameInfo, event).handleErrorWith {
-                               case gameError: GameError =>
-                                 for {
-                                   _ <- gameInfoVar.put(gameInfo)
-                                   _ <- f.raiseError[Unit](gameError) // TODO send to topic...
-                                 } yield gameInfo
-                             })
-          _               <- Stream.emit(gameInfoUpdated.state.current).through(topic.publish)
-          _               <- Stream.eval(gameInfoVar.put(gameInfoUpdated))
-        } yield ()
+    new GameStateMachine[F] {
+      override def transition(
+          gameVar: Game[F],
+          turns: Turns[F]
+      ): Pipe[F, GameEvent, Unit] =
+        gameEvents =>
+          for {
+            gameInfo        <- gameVar.take.toStream
+            event           <- gameEvents
+            f                = Sync[F]
+            gameInfoUpdated <- chooseNextTransition(gameInfo, event).handleErrorWith {
+                                 case gameError: GameError =>
+                                   for {
+                                     _ <- gameVar.put(gameInfo)
+                                     _ <- f.raiseError[Unit](gameError) // TODO send to topic...
+                                   } yield gameInfo
+                               }.toStream
+            _               <- Stream.emit(gameInfoUpdated.state.current).through(turns.publish)
+            _               <- gameVar.put(gameInfoUpdated).toStream
+          } yield ()
+    }
 }

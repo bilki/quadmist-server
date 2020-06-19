@@ -7,26 +7,26 @@ class CardSpec extends ModelSpec {
 
   "A card" when {
     implicit val defaultGameSettings: GameSettings = new GameSettings(
-      CARD_MAX_LEVEL = 16,
-      MAX_HAND_CARDS = 5
+      cardMaxLevel = 16,
+      maxHandCards = 5
     )
 
     "created" should {
       "have correct power level according to game settings" in {
         forAll { card: Card =>
-          card.power.toInt should be < defaultGameSettings.CARD_MAX_LEVEL
+          card.power.toInt should be < defaultGameSettings.cardMaxLevel
         }
       }
 
       "have correct physical defense level according to game settings" in {
         forAll { card: Card =>
-          card.pdef.toInt should be < defaultGameSettings.CARD_MAX_LEVEL
+          card.pdef.toInt should be < defaultGameSettings.cardMaxLevel
         }
       }
 
       "have correct magic defense level according to game settings" in {
         forAll { card: Card =>
-          card.mdef.toInt should be < defaultGameSettings.CARD_MAX_LEVEL
+          card.mdef.toInt should be < defaultGameSettings.cardMaxLevel
         }
       }
 

@@ -59,9 +59,9 @@ object Card {
       arrows: List[Arrow]
   )(implicit gameSettings: GameSettings): Option[Card] = {
     val requirements =
-      power.toInt < gameSettings.CARD_MAX_LEVEL &&
-        pdef.toInt < gameSettings.CARD_MAX_LEVEL &&
-        mdef.toInt < gameSettings.CARD_MAX_LEVEL &&
+      power.toInt < gameSettings.cardMaxLevel &&
+        pdef.toInt < gameSettings.cardMaxLevel &&
+        mdef.toInt < gameSettings.cardMaxLevel &&
         Arrow.checkArrows(arrows)
 
     Option.when(requirements)(
