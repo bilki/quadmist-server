@@ -1,6 +1,7 @@
 package com.lambdarat.quadmist.repository
 
 import com.lambdarat.quadmist.domain.{Card, CardClass, Player}
+import com.lambdarat.quadmist.game.GameError.InvalidCard
 import com.lambdarat.quadmist.repository.dto.CardDTO
 
 import memeid4s.UUID
@@ -23,7 +24,7 @@ object CardRepository {
     val cards: TrieMap[Card.Id, CardDTO] = TrieMap.empty
 
     override def getCard(id: Card.Id): IO[CardDTO] =
-      IO.fromOption(cards.get(id))(new Exception("Card not found"))
+      IO.fromOption(cards.get(id))(InvalidCard(id))
 
     override def storeCard(card: Card, cclass: CardClass.Id, owner: Player.Id): IO[Card.Id] =
       for {

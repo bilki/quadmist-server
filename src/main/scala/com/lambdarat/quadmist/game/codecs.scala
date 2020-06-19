@@ -2,22 +2,26 @@ package com.lambdarat.quadmist.game
 
 import com.lambdarat.quadmist.domain.Board.{BoardMaxBlocks, BoardSize, XAxis, YAxis}
 import com.lambdarat.quadmist.domain.Card.{MagicalDef, PhysicalDef, Power}
+import com.lambdarat.quadmist.domain.Common.Color
 import com.lambdarat.quadmist.domain.Fight.{AttackerPoints, AttackerWins, DefenderPoints}
 import com.lambdarat.quadmist.domain.Square.Occupied
 import com.lambdarat.quadmist.domain._
+import com.lambdarat.quadmist.game.GameEvent.{PlayerJoined, PlayerMove, PlayerRequestHand}
 
-import io.circe.Encoder
 import io.circe.generic.semiauto._
+import io.circe.{Decoder, Encoder}
 import memeid4s.cats.implicits._
+import memeid4s.circe.implicits._
 
 import cats.implicits._
 
 object codecs {
+  /* ---- ENCODERS ---- */
   implicit val powerEncoder       = Encoder.encodeInt.contramap[Power](_.toInt)
   implicit val battleClassEncoder = Encoder.encodeString.contramap[BattleClass](_.entryName)
   implicit val physicalDefEncoder = Encoder.encodeInt.contramap[PhysicalDef](_.toInt)
   implicit val magicalDefEncoder  = Encoder.encodeInt.contramap[MagicalDef](_.toInt)
-  implicit val arrowEncoder       = Encoder.encodeString.contramap[Arrow](_.entryName)
+  implicit val arrowEncoder       = deriveEncoder[Arrow]
   implicit val cardEncoder        = deriveEncoder[Card]
 
   implicit val xaxisEncoder       = Encoder.encodeInt.contramap[XAxis](_.toInt)
@@ -42,4 +46,23 @@ object codecs {
 
   implicit val gameTurnEncoder  = deriveEncoder[GameTurn]
   implicit val turnStateEncoder = deriveEncoder[TurnState]
+
+  /* ---- DECODERS ---- */
+  implicit val playerIdDecoder     = UUIDDecoderInstance.map(Player.Id.apply)
+  implicit val playerJoinedDecoder = deriveDecoder[PlayerJoined]
+
+  implicit val cardIdDecoder            = UUIDDecoderInstance.map(Card.Id.apply)
+  implicit val initialHandDecoder       = deriveDecoder[InitialHand]
+  implicit val playerRequestHandDecoder = deriveDecoder[PlayerRequestHand]
+
+  implicit val colorDecoder = deriveDecoder[Color]
+
+  implicit val xaxisDecoder       = Decoder.decodeInt.map(XAxis.apply)
+  implicit val yaxisDecoder       = Decoder.decodeInt.map(YAxis.apply)
+  implicit val coordinatesDecoder = deriveDecoder[Coordinates]
+
+  implicit val arrowDecoder          = deriveDecoder[Arrow]
+  implicit val playerGameMoveDecoder = deriveDecoder[GameMovement]
+  implicit val playerMovementDecoder = deriveDecoder[PlayerMove]
+  implicit val gameEventDecoder      = deriveDecoder[GameEvent]
 }

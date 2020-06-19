@@ -2,7 +2,7 @@ package com.lambdarat.quadmist.domain
 
 import com.lambdarat.quadmist.domain.Board.{XAxis, YAxis}
 
-import enumeratum._
+import enumeratum.values.{StringCirceEnum, StringEnum, StringEnumEntry}
 
 /**
   * Card arrows.
@@ -15,22 +15,22 @@ import enumeratum._
   * ---------------------------------
   *
   */
-sealed trait Arrow extends EnumEntry {
+sealed abstract class Arrow(val value: String) extends StringEnumEntry {
   def hex: Byte
   def opposite: Arrow
 }
 
-object Arrow extends Enum[Arrow] {
+object Arrow extends StringEnum[Arrow] with StringCirceEnum[Arrow] {
   val values = findValues
 
-  case object N  extends Arrow { val hex: Byte = 0x80.toByte; val opposite: Arrow = S }
-  case object NE extends Arrow { val hex: Byte = 0x40; val opposite: Arrow = SW       }
-  case object E  extends Arrow { val hex: Byte = 0x20; val opposite: Arrow = W        }
-  case object SE extends Arrow { val hex: Byte = 0x10; val opposite: Arrow = NW       }
-  case object S  extends Arrow { val hex: Byte = 0x08; val opposite: Arrow = N        }
-  case object SW extends Arrow { val hex: Byte = 0x04; val opposite: Arrow = NE       }
-  case object W  extends Arrow { val hex: Byte = 0x02; val opposite: Arrow = E        }
-  case object NW extends Arrow { val hex: Byte = 0x01; val opposite: Arrow = SE       }
+  case object N  extends Arrow("N")  { val hex: Byte = 0x80.toByte; val opposite: Arrow = S }
+  case object NE extends Arrow("NE") { val hex: Byte = 0x40; val opposite: Arrow = SW       }
+  case object E  extends Arrow("E")  { val hex: Byte = 0x20; val opposite: Arrow = W        }
+  case object SE extends Arrow("SE") { val hex: Byte = 0x10; val opposite: Arrow = NW       }
+  case object S  extends Arrow("S")  { val hex: Byte = 0x08; val opposite: Arrow = N        }
+  case object SW extends Arrow("SW") { val hex: Byte = 0x04; val opposite: Arrow = NE       }
+  case object W  extends Arrow("W")  { val hex: Byte = 0x02; val opposite: Arrow = E        }
+  case object NW extends Arrow("NW") { val hex: Byte = 0x01; val opposite: Arrow = SE       }
 
   val MAX_ARROWS = values.size
 

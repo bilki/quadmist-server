@@ -2,6 +2,7 @@ package com.lambdarat.quadmist.repository
 
 import com.lambdarat.quadmist.domain
 import com.lambdarat.quadmist.domain.CardClass
+import com.lambdarat.quadmist.game.GameError.InvalidCardClass
 import com.lambdarat.quadmist.repository.dto.CardClassDTO
 
 import memeid4s.UUID
@@ -22,7 +23,7 @@ object CardClassRepository {
     val cardClasses: TrieMap[domain.CardClass.Id, CardClassDTO] = TrieMap.empty
 
     override def getCardClass(id: CardClass.Id): IO[CardClassDTO] =
-      IO.fromOption(cardClasses.get(id))(new Exception("CardClass not found"))
+      IO.fromOption(cardClasses.get(id))(InvalidCardClass(id))
 
     override def createCardClass(name: CardClass.Name): IO[CardClass.Id] =
       for {

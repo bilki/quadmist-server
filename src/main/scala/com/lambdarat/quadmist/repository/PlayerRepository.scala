@@ -1,6 +1,7 @@
 package com.lambdarat.quadmist.repository
 
 import com.lambdarat.quadmist.domain.Player
+import com.lambdarat.quadmist.game.GameError.InvalidPlayer
 import com.lambdarat.quadmist.repository.dto.PlayerDTO
 
 import memeid4s.UUID
@@ -23,7 +24,7 @@ object PlayerRepository {
     val players: TrieMap[Player.Id, PlayerDTO] = TrieMap.empty
 
     override def getPlayer(id: Player.Id): IO[PlayerDTO] =
-      IO.fromOption(players.get(id))(new Exception("Player not found"))
+      IO.fromOption(players.get(id))(InvalidPlayer(id))
 
     override def createPlayer(name: Player.Name): IO[Player.Id] =
       for {

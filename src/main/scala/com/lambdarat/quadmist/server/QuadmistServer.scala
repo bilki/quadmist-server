@@ -4,7 +4,7 @@ import com.lambdarat.quadmist.domain.Board.{BoardMaxBlocks, BoardSize}
 import com.lambdarat.quadmist.domain._
 import com.lambdarat.quadmist.engines._
 import com.lambdarat.quadmist.game.GamePhase.Initial
-import com.lambdarat.quadmist.game.{GameInfo, GameState, GameTurn, TurnState}
+import com.lambdarat.quadmist.game.{GameInfo, GameState, GameStateMachine, GameTurn, TurnState}
 import com.lambdarat.quadmist.repository.GameRepository
 
 import fs2.Stream
@@ -28,7 +28,7 @@ object QuadmistServer {
     BoardMaxBlocks(6)
   )
 
-  def server[F[_]: ConcurrentEffect: QuadmistInit: GameRepository](implicit
+  def server[F[_]: ConcurrentEffect: QuadmistInit: GameRepository: GameStateMachine](implicit
       T: Timer[F],
       C: ContextShift[F]
   ): Stream[F, ExitCode] = {

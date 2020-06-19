@@ -32,6 +32,7 @@ object ProjectPlugin extends AutoPlugin {
       "com.47deg" %% "memeid4s",
       "com.47deg" %% "memeid4s-http4s",
       "com.47deg" %% "memeid4s-cats",
+      "com.47deg" %% "memeid4s-circe",
       "com.47deg" %% "memeid4s-scalacheck",
       "com.47deg" %% "memeid4s-literal"
     ).map(_ % memeidV)
