@@ -6,7 +6,7 @@ import com.lambdarat.quadmist.domain.Common.Color
 import com.lambdarat.quadmist.domain.Fight.{AttackerPoints, AttackerWins, DefenderPoints}
 import com.lambdarat.quadmist.domain.Square.Occupied
 import com.lambdarat.quadmist.domain._
-import com.lambdarat.quadmist.game.GameEvent.{PlayerJoined, PlayerMove, PlayerRequestHand}
+import com.lambdarat.quadmist.game.GameEvent.{PlayerHand, PlayerMove}
 
 import io.circe.generic.semiauto._
 import io.circe.{Decoder, Encoder}
@@ -50,12 +50,14 @@ object codecs {
   implicit val eventOutcomeEncoder = Encoder.encodeEither[GameError, TurnState]("error", "turn")
 
   /* ---- DECODERS ---- */
-  implicit val playerIdDecoder     = UUIDDecoderInstance.map(Player.Id.apply)
-  implicit val playerJoinedDecoder = deriveDecoder[PlayerJoined]
+  implicit val cardClassIdDecoder   = UUIDDecoderInstance.map(CardClass.Id.apply)
+  implicit val cardClassNameDecoder = Decoder.decodeString.map(CardClass.Name.apply)
+
+  implicit val playerIdDecoder = UUIDDecoderInstance.map(Player.Id.apply)
 
   implicit val cardIdDecoder            = UUIDDecoderInstance.map(Card.Id.apply)
   implicit val initialHandDecoder       = deriveDecoder[InitialHand]
-  implicit val playerRequestHandDecoder = deriveDecoder[PlayerRequestHand]
+  implicit val playerRequestHandDecoder = deriveDecoder[PlayerHand]
 
   implicit val colorDecoder = deriveDecoder[Color]
 

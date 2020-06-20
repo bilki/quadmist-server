@@ -12,9 +12,9 @@ sealed trait GameEvent extends EnumEntry
 object GameEvent extends Enum[GameEvent] with CirceEnum[GameEvent] {
   val values = findValues
 
-  case class PlayerJoined(id: Player.Id)                                extends GameEvent
-  case class PlayerRequestHand(id: Player.Id, initialHand: InitialHand) extends GameEvent
-  case class PlayerMove(id: Player.Id, move: GameMovement)              extends GameEvent
-  case class TurnTimeout(id: Player.Id)                                 extends GameEvent
-  case object GameFinished                                              extends GameEvent
+  case object PlayerJoined                        extends GameEvent
+  case class PlayerHand(initialHand: InitialHand) extends GameEvent
+  case class PlayerMove(move: GameMovement)       extends GameEvent
+  case class TurnTimeout(id: Player.Id)           extends GameEvent
+  case object GameFinished                        extends GameEvent
 }

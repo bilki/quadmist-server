@@ -56,6 +56,12 @@ object ProjectPlugin extends AutoPlugin {
 
     lazy val simulacrum = "org.typelevel" %% "simulacrum" % "1.0.0"
 
+    private lazy val monocleV = "2.0.0"
+    lazy val monocle          = Seq(
+      "com.github.julien-truffaut" %% "monocle-core",
+      "com.github.julien-truffaut" %% "monocle-macro"
+    ).map(_ % monocleV)
+
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1")
   }
 

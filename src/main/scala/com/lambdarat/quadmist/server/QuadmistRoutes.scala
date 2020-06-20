@@ -12,7 +12,6 @@ import com.lambdarat.quadmist.utils.Identified._
 import fs2.{Pipe, Stream}
 import io.circe.parser.decode
 import io.circe.syntax._
-import io.circe.{DecodingFailure, ParsingFailure}
 import memeid4s.UUID
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
@@ -46,11 +45,7 @@ object QuadmistRoutes {
 
         val decodeEvents: Pipe[F, WebSocketFrame, Either[GameError, GameEvent]] = _.collect {
           case Text(jsonEvt, _) =>
-            decode[GameEvent](jsonEvt)
-              .leftMap[GameError] {
-                case ParsingFailure(msg, _)  => InvalidEvent(msg)
-                case DecodingFailure(msg, _) => InvalidEvent(msg)
-              }
+            decode[GameEvent](jsonEvt).leftMap[GameError](err => InvalidEvent(err.show))
         }
 
         val turnGenerator = decodeEvents.andThen(_.flatMap {
@@ -63,7 +58,7 @@ object QuadmistRoutes {
         val initPlayer = for {
           _  <- GameRepository[F].getPlayer(playerId)
           _  <- Stream
-                  .emit[F, GameEvent](PlayerJoined(playerId))
+                  .emit[F, GameEvent](PlayerJoined)
                   .through(gameStateMachine)
                   .compile
                   .drain

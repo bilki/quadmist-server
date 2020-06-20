@@ -11,7 +11,7 @@ lazy val quadmist = (project in file("."))
       newtype,
       mouse,
       scalacheck % Test
-    ) ++ circe ++ memeid ++ enumeratum ++ scalatest ++ cats ++ http4s,
+    ) ++ monocle ++ circe ++ memeid ++ enumeratum ++ scalatest ++ cats ++ http4s,
     kindProjector
   )
 

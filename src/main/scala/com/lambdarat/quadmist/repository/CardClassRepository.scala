@@ -15,6 +15,7 @@ import cats.effect.IO
 trait CardClassRepository[F[_]] {
   def getCardClass(id: CardClass.Id): F[CardClassDTO]
   def createCardClass(name: CardClass.Name): F[CardClass.Id]
+  def saveCardClass(cardClass: CardClassDTO): F[Boolean]
 }
 
 object CardClassRepository {
@@ -30,5 +31,8 @@ object CardClassRepository {
         cardClassId <- UUID.random[IO].map(CardClass.Id.apply)
         _           <- IO(cardClasses.put(cardClassId, CardClassDTO(cardClassId, CardClass(name))))
       } yield cardClassId
+
+    override def saveCardClass(cardClass: CardClassDTO): IO[Boolean] =
+      IO(cardClasses.putIfAbsent(cardClass.id, cardClass).isEmpty)
   }
 }

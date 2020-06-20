@@ -1,7 +1,7 @@
 package com.lambdarat.quadmist.repository
 
 import com.lambdarat.quadmist.domain.{Card, CardClass, Player}
-import com.lambdarat.quadmist.repository.dto.PlayerDTO
+import com.lambdarat.quadmist.repository.dto.{CardClassDTO, PlayerDTO}
 import com.lambdarat.quadmist.utils.Identified
 import com.lambdarat.quadmist.utils.Identified._
 
@@ -17,8 +17,15 @@ trait GameRepository[F[_]] {
   def getCard(id: Card.Id): F[Card]
 
   def createCardClass(name: CardClass.Name): F[CardClass.Id]
+  def newCardClass(id: CardClass.Id, name: CardClass.Name): F[Boolean]
 
-  def createCardForPlayer(card: Card, player: Player.Id, cclass: CardClass.Id): F[Card.Id]
+  def generateCardForPlayer(player: Player.Id, cclass: CardClass.Id, card: Card): F[Card.Id]
+  def saveCardForPlayer(
+      id: Card.Id,
+      player: Player.Id,
+      cclass: CardClass.Id,
+      card: Card
+  ): F[Boolean]
   def getCardsBy(player: Player.Id): F[List[Identified[Card.Id, Card]]]
 }
 
@@ -46,11 +53,21 @@ object GameRepository {
       override def createCardClass(name: CardClass.Name): F[CardClass.Id] =
         cardClassRepo.createCardClass(name)
 
-      override def createCardForPlayer(
-          card: Card,
+      override def newCardClass(id: CardClass.Id, name: CardClass.Name): F[Boolean] =
+        cardClassRepo.saveCardClass(CardClassDTO(id, CardClass(name)))
+
+      override def generateCardForPlayer(
           player: Player.Id,
-          cclass: CardClass.Id
-      ): F[Card.Id] = cardRepo.storeCard(card, cclass, player)
+          cclass: CardClass.Id,
+          card: Card
+      ): F[Card.Id] = cardRepo.generateCard(cclass, player, card)
+
+      override def saveCardForPlayer(
+          id: Card.Id,
+          player: Player.Id,
+          cclass: CardClass.Id,
+          card: Card
+      ): F[Boolean] = cardRepo.newCard(id, cclass, player, card)
 
       override def getCardsBy(player: Player.Id): F[List[Identified[Card.Id, Card]]] =
         cardRepo.getCardsBy(player).map(_.map(dto => Identified(dto.id, dto.card)))
