@@ -7,6 +7,7 @@ import com.lambdarat.quadmist.game.GamePhase.Initial
 import com.lambdarat.quadmist.game._
 import com.lambdarat.quadmist.repository.GameRepository
 import com.lambdarat.quadmist.server.QuadmistCommon._
+import com.lambdarat.quadmist.utils.Identified
 
 import fs2.Stream
 import fs2.concurrent.Topic
@@ -53,7 +54,7 @@ object QuadmistServer {
 
     for {
       _                <- QuadmistInit[F].init.toStream
-      gameTopic        <- Topic[F, TurnState](initialState).toStream
+      gameTopic        <- Topic(initialState.asRight[Identified[Player.Id, GameError]]).toStream
       gameInfo         <- MVar[F].of(initialGameInfo).toStream
       httpApp           = QuadmistRoutes.service(gameInfo, gameTopic).orNotFound
       httpAppWithLogger = Logger.httpApp(true, true)(httpApp)

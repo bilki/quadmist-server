@@ -44,8 +44,10 @@ object codecs {
   implicit val squareEncoder      = deriveEncoder[Square]
   implicit val boardEncoder       = deriveEncoder[Board]
 
-  implicit val gameTurnEncoder  = deriveEncoder[GameTurn]
-  implicit val turnStateEncoder = deriveEncoder[TurnState]
+  implicit val gameTurnEncoder     = deriveEncoder[GameTurn]
+  implicit val turnStateEncoder    = deriveEncoder[TurnState]
+  implicit val gameErrorEncoder    = Encoder.encodeString.contramap[GameError](_.msg)
+  implicit val eventOutcomeEncoder = Encoder.encodeEither[GameError, TurnState]("error", "turn")
 
   /* ---- DECODERS ---- */
   implicit val playerIdDecoder     = UUIDDecoderInstance.map(Player.Id.apply)

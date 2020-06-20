@@ -29,4 +29,7 @@ object GameError {
   case class InvalidTransition(info: GameInfo, event: GameEvent) extends GameError {
     override val msg: String = s"Invalid transition for event [${event.entryName}]"
   }
+  case class InvalidEvent(error: String)                         extends GameError {
+    override def msg: String = s"Invalid event [$error]"
+  }
 }
