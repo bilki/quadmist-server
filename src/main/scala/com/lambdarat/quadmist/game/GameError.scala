@@ -31,6 +31,9 @@ object GameError {
   case class PlayerAlreadyJoined(id: Player.Id)                  extends GameError {
     override def msg: String = s"Player [${id.toUUID.show}] already joined the game"
   }
+  case class PlayerNeverJoined(id: Player.Id)                    extends GameError {
+    override def msg: String = s"Player [${id.toUUID.show}] never joined the game"
+  }
   case class InvalidTransition(info: GameInfo, event: GameEvent) extends GameError {
     override val msg: String = s"Invalid transition for event [${event.entryName}]"
   }

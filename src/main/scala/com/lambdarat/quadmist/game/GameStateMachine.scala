@@ -29,11 +29,8 @@ trait GameStateMachine[F[_]] {
 object GameStateMachine {
   def apply[F[_]](implicit sm: GameStateMachine[F]): GameStateMachine[F] = sm
 
-  def playerJoined[F[_]: Sync: GameRepository](
-      gameInfo: GameInfo,
-      playerId: Player.Id
-  ): F[GameInfo] = {
-    val nextGameInfo: Either[GameError, GameInfo] = (gameInfo.playerOne, gameInfo.playerTwo) match {
+  def playerJoined(gameInfo: GameInfo, playerId: Player.Id): Either[GameError, GameInfo] =
+    (gameInfo.playerOne, gameInfo.playerTwo) match {
       case (Some(_), Some(_))              => PlayerSlotsFull.asLeft
       case (Some(p1), _) if p1 == playerId => PlayerAlreadyJoined(playerId).asLeft
       case (_, Some(p2)) if p2 == playerId => PlayerAlreadyJoined(playerId).asLeft
@@ -41,52 +38,50 @@ object GameStateMachine {
       case (None, _)                       => gameInfo.copy(playerOne = playerId.some).asRight
     }
 
-    Sync[F].fromEither(nextGameInfo)
-  }
-
   private lazy val redHandLens  = GenLens[GameInfo](_.state.current.board.redHand)
   private lazy val blueHandLens = GenLens[GameInfo](_.state.current.board.blueHand)
 
-  def playerHand[F[_]: Sync: GameRepository](
+  def isFromPlayer(
+      playerId: Player.Id,
+      cards: List[Identified[Card.Id, Card]]
+  )(id: Card.Id): ValidatedNel[GameError, Card] =
+    cards
+      .find(_.id == id)
+      .fold[ValidatedNel[GameError, Card]](invalidNel(NotOwnedCard(id, playerId)))(cardWithId =>
+        validNel(cardWithId.entity)
+      )
+
+  def validateHand(
+      hand: InitialHand,
+      playerId: Player.Id,
+      cards: List[Identified[Card.Id, Card]]
+  ): ValidatedNel[GameError, Set[Card]] = {
+    val validate = isFromPlayer(playerId, cards) _
+
+    (validate(hand.c1), validate(hand.c2), validate(hand.c3), validate(hand.c4), validate(hand.c5))
+      .mapN(Set(_, _, _, _, _))
+  }
+
+  def playerHand(
       gameInfo: GameInfo,
       playerHand: PlayerHand,
-      playerId: Player.Id
-  ): F[GameInfo] = {
+      playerId: Player.Id,
+      playerCards: List[Identified[Card.Id, Card]]
+  ): Either[GameError, GameInfo] = {
     // Player one is RED, player two is BLUE
     val isRed  = gameInfo.playerOne.contains(playerId)
     val isBlue = gameInfo.playerTwo.contains(playerId)
+    val hand   = playerHand.initialHand
 
-    def isFromPlayer(
-        cards: List[Identified[Card.Id, Card]]
-    )(id: Card.Id): ValidatedNel[GameError, Card] =
-      cards
-        .find(_.id == id)
-        .fold[ValidatedNel[GameError, Card]](invalidNel(NotOwnedCard(id, playerId)))(cardWithId =>
-          validNel(cardWithId.entity)
-        )
-
-    def validateHand(cards: List[Identified[Card.Id, Card]]): ValidatedNel[GameError, Set[Card]] = {
-      val validate = isFromPlayer(cards) _
-      val hand     = playerHand.initialHand
-
-      (
-        validate(hand.c1),
-        validate(hand.c2),
-        validate(hand.c3),
-        validate(hand.c4),
-        validate(hand.c5)
-      ).mapN((c1, c2, c3, c4, c5) => Set(c1, c2, c3, c4, c5))
-    }
-
-    for {
-      cards         <- GameRepository[F].getCardsBy(playerId)
-      handValidation = validateHand(cards).toEither.leftMap(MultipleErrors.apply)
-      validatedHand <- Sync[F].fromEither(handValidation)
-    } yield {
-      if (isBlue) blueHandLens.set(validatedHand)(gameInfo)
-      else if (isRed) redHandLens.set(validatedHand)(gameInfo)
-      else gameInfo
-    }
+    validateHand(hand, playerId, playerCards).toEither
+      .fold(
+        errors => MultipleErrors(errors).asLeft,
+        { validatedHand =>
+          if (isBlue) blueHandLens.set(validatedHand)(gameInfo).asRight
+          else if (isRed) redHandLens.set(validatedHand)(gameInfo).asRight
+          else PlayerNeverJoined(playerId).asLeft
+        }
+      )
   }
 
   def chooseNextTransition[F[_]: Sync: GameRepository](
@@ -95,9 +90,12 @@ object GameStateMachine {
   ): F[GameInfo] =
     (gameInfo.phase, event.entity) match {
       case (Initial, PlayerJoined)                                       =>
-        playerJoined(gameInfo, event.id)
+        Sync[F].fromEither(playerJoined(gameInfo, event.id))
       case (Initial, ph: PlayerHand)                                     =>
-        playerHand(gameInfo, ph, event.id)
+        for {
+          playerCards <- GameRepository[F].getCardsBy(event.id)
+          newGameInfo <- Sync[F].fromEither(playerHand(gameInfo, ph, event.id, playerCards))
+        } yield newGameInfo
       case (PlayerBlueTurn, turn: PlayerMove) if turn.move.color == Blue => ???
       case (PlayerRedTurn, turn: PlayerMove) if turn.move.color == Red   => ???
       case (PlayerRedTurn | PlayerBlueTurn, GameFinished)                => ???
