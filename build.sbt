@@ -4,6 +4,10 @@ version in ThisBuild := "0.1.0-SNAPSHOT"
 organization in ThisBuild := "com.lambdarat"
 
 lazy val quadmist = (project in file("."))
+  .dependsOn(`quadmist-common`, `quadmist-server`)
+  .aggregate(`quadmist-common`, `quadmist-server`)
+
+lazy val `quadmist-server` = project
   .settings(
     libraryDependencies ++= Seq(
       simulacrum,
@@ -12,10 +16,23 @@ lazy val quadmist = (project in file("."))
       mouse,
       scalacheck % Test
     ) ++ monocle ++ circe ++ memeid ++ enumeratum ++ scalatest ++ cats ++ http4s,
-    kindProjector
+    kindProjector,
+    scalacOptions ++= Seq(
+      "-Ymacro-annotations",
+      "-language:higherKinds"
+    )
   )
+  .dependsOn(`quadmist-common`)
 
-scalacOptions ++= Seq(
-  "-Ymacro-annotations",
-  "-language:higherKinds"
-)
+lazy val `quadmist-common` = project
+  .settings(
+    libraryDependencies ++= Seq(
+      newtype,
+      scalacheck % Test
+    ) ++ monocle ++ circe ++ memeid ++ enumeratum ++ scalatest ++ cats,
+    kindProjector,
+    scalacOptions ++= Seq(
+      "-Ymacro-annotations",
+      "-language:higherKinds"
+    )
+  )
