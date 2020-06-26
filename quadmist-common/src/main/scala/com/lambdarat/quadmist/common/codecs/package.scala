@@ -1,4 +1,4 @@
-package com.lambdarat.quadmist.common.codecs
+package com.lambdarat.quadmist.common
 
 import com.lambdarat.quadmist.common.domain.Card.{MagicalDef, PhysicalDef, Power}
 import com.lambdarat.quadmist.common.domain.Coordinates.{XAxis, YAxis}
@@ -14,14 +14,14 @@ import com.lambdarat.quadmist.common.domain._
 import com.lambdarat.quadmist.common.game.GameEvent.{PlayerHand, PlayerMove}
 import com.lambdarat.quadmist.common.game._
 
-import io.circe.generic.semiauto._
+import io.circe.generic.semiauto.{deriveDecoder, deriveEncoder}
 import io.circe.{Decoder, Encoder}
 import memeid4s.cats.implicits._
-import memeid4s.circe.implicits._
+import memeid4s.circe.implicits.UUIDDecoderInstance
 
 import cats.implicits._
 
-object codecs {
+package object codecs {
   /* ---- ENCODERS ---- */
   implicit val powerEncoder       = Encoder.encodeInt.contramap[Power](_.toInt)
   implicit val battleClassEncoder = Encoder.encodeString.contramap[BattleClass](_.entryName)

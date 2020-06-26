@@ -135,7 +135,7 @@ object InitSample {
     )
   )
 
-  import com.lambdarat.quadmist.common.codecs.codecs._
+  import com.lambdarat.quadmist.common.codecs._
   import io.circe.parser.decode
 
   case class CardClassEntry(id: CardClass.Id, name: CardClass.Name)

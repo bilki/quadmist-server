@@ -1,6 +1,6 @@
 package com.lambdarat.quadmist.server
 
-import com.lambdarat.quadmist.common.codecs.codecs._
+import com.lambdarat.quadmist.common.codecs._
 import com.lambdarat.quadmist.common.domain.Player
 import com.lambdarat.quadmist.common.game.GameError.InvalidEvent
 import com.lambdarat.quadmist.common.game.GameEvent.PlayerJoined
