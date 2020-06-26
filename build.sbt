@@ -5,7 +5,7 @@ organization in ThisBuild := "com.lambdarat"
 
 lazy val quadmist = (project in file("."))
   .dependsOn(`quadmist-server`)
-  .aggregate(`quadmist-server`)
+  .aggregate(`quadmist-common`, `quadmist-server`)
 
 lazy val `quadmist-common` = ProjectRef(file("quadmist-common"), "quadmist-common")
 
@@ -17,4 +17,4 @@ lazy val `quadmist-server` = project
       "-language:higherKinds"
     )
   )
-  .dependsOn(classpathDependency(`quadmist-common`))
+  .dependsOn(`quadmist-common`)
