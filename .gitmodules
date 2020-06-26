@@ -1,0 +1,3 @@
+[submodule "quadmist-common"]
+	path = quadmist-common
+	url = https://github.com/bilki/quadmist-common
