@@ -1,5 +1,5 @@
 name in ThisBuild := """quadmist"""
-scalaVersion in ThisBuild := "2.13.2"
+scalaVersion in ThisBuild := "2.13.3"
 version in ThisBuild := "0.1.0-SNAPSHOT"
 organization in ThisBuild := "com.lambdarat"
 

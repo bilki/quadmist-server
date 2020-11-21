@@ -4,7 +4,7 @@ import sbt.plugins.JvmPlugin
 object ProjectPlugin extends AutoPlugin {
 
   object autoImport {
-    lazy val http4sV = "0.21.4"
+    lazy val http4sV = "0.21.11"
     lazy val http4s  = Seq(
       "org.http4s" %% "http4s-blaze-server" % http4sV,
       "org.http4s" %% "http4s-circe"        % http4sV,
@@ -15,7 +15,7 @@ object ProjectPlugin extends AutoPlugin {
 
     lazy val simulacrum = "org.typelevel" %% "simulacrum" % "1.0.0"
 
-    private lazy val monocleV   = "2.0.0"
+    private lazy val monocleV   = "2.0.3"
     lazy val monocle            = Seq(
       "com.github.julien-truffaut" %% "monocle-core",
       "com.github.julien-truffaut" %% "monocle-macro"
