@@ -132,7 +132,8 @@ object GameStateMachine {
                                  .attemptNarrow[GameError]
                                  .map(_.leftMap(_.withId(playerId)))
                                  .toStream
-            _               <- Stream.emit(gameInfoUpdated.map(_.state.current))
+            _               <- Stream
+                                 .emit(gameInfoUpdated.map(_.state.current))
                                  .through(turns.publish)
             _               <- gameVar.put(gameInfoUpdated.getOrElse(gameInfo)).toStream
           } yield ()

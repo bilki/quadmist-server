@@ -7,8 +7,7 @@ import com.lambdarat.quadmist.common.domain._
 trait BoardEngine {
   import Board._
 
-  /**
-    * Adds a new occupied square to the board.
+  /** Adds a new occupied square to the board.
     *
     * @param board     Board
     * @param newCoords new Coordinate
@@ -39,8 +38,7 @@ trait BoardEngine {
     board.copy(grid = newGrid, redHand = newRed, blueHand = newBlue)
   }
 
-  /**
-    * Flips the card on the specified position.
+  /** Flips the card on the specified position.
     *
     * @param board  Board
     * @param coords Coordinate
@@ -62,8 +60,7 @@ trait BoardEngine {
     board.copy(grid = newGrid)
   }
 
-  /**
-    * Flips all the cards on the specified positions.
+  /** Flips all the cards on the specified positions.
     *
     * @param board  Board
     * @param coords Coordinate
@@ -78,8 +75,7 @@ trait BoardEngine {
     board.copy(grid = newGrid)
   }
 
-  /**
-    * Get the opponents for a card on the given coords.
+  /** Get the opponents for a card on the given coords.
     *
     * @param board  Board
     * @param coords Coordinate
@@ -95,20 +91,18 @@ trait BoardEngine {
         card.arrows
           .map(arrow => (arrow, Arrow.target(arrow, coords)))
           .filter { case (_, coords: Coordinates) => areValidCoords(board, coords) }
-          .collect {
-            case (arrow, arrowCoord) =>
-              board.grid.getSquare(arrowCoord.x)(arrowCoord.y) match {
-                case Occupied(_, enemyCard, enemyColor) if color != enemyColor =>
-                  (enemyCard, arrow)
-              }
+          .collect { case (arrow, arrowCoord) =>
+            board.grid.getSquare(arrowCoord.x)(arrowCoord.y) match {
+              case Occupied(_, enemyCard, enemyColor) if color != enemyColor =>
+                (enemyCard, arrow)
+            }
           }
 
-      case Block | Free             => List.empty // Maybe error
+      case Block | Free => List.empty // Maybe error
     }
   }
 
-  /**
-    * Retrieve all the cards from the board of the given color.
+  /** Retrieve all the cards from the board of the given color.
     *
     * @param board Board
     * @param color color of the cards to be retrieved

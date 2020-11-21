@@ -3,8 +3,7 @@ package com.lambdarat.quadmist.game
 import com.lambdarat.quadmist.common.domain.Player
 import com.lambdarat.quadmist.common.game.GamePhase
 
-/**
-  * Global game information.
+/** Global game information.
   *
   * @param state current turn and historic
   * @param phase current phase of game

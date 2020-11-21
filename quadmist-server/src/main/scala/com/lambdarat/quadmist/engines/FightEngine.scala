@@ -51,8 +51,7 @@ trait FightEngine {
     )
   }
 
-  /**
-    * Challenge another card.
+  /** Challenge another card.
     *
     * @param attacker attacking card
     * @param defender enemy card

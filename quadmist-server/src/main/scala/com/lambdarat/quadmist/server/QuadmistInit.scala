@@ -18,15 +18,14 @@ object QuadmistInit {
       override def init: F[Unit] =
         for {
           cardClasses <- loadCardClasses
-          _           <- cardClasses.traverse {
-                           case CardClassEntry(id, name) => GameRepository[F].newCardClass(id, name)
+          _           <- cardClasses.traverse { case CardClassEntry(id, name) =>
+                           GameRepository[F].newCardClass(id, name)
                          }
-          _           <- players.traverse {
-                           case (id, name) => GameRepository[F].newPlayer(id, name)
+          _           <- players.traverse { case (id, name) =>
+                           GameRepository[F].newPlayer(id, name)
                          }
-          _           <- cards.traverse {
-                           case (id, (playerId, cclasId, card)) =>
-                             GameRepository[F].saveCardForPlayer(id, playerId, cclasId, card)
+          _           <- cards.traverse { case (id, (playerId, cclasId, card)) =>
+                           GameRepository[F].saveCardForPlayer(id, playerId, cclasId, card)
                          }
         } yield ()
     }

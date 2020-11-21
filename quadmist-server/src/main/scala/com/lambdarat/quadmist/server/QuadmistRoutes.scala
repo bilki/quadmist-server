@@ -32,45 +32,43 @@ object QuadmistRoutes {
     val dsl = Http4sDsl[F]
     import dsl._
 
-    HttpRoutes.of[F] {
-      case GET -> Root / "join" / UUID(id) =>
-        val playerId = Player.Id(id)
+    HttpRoutes.of[F] { case GET -> Root / "join" / UUID(id) =>
+      val playerId = Player.Id(id)
 
-        // Listens to turns and also errors specifically sent to this player
-        val turnsSubscription = turns
-          .subscribe(10)
-          .filter(_.fold(_.id == playerId, _ => true))
-          .map(turn => Text(turn.leftMap(_.entity).asJson.noSpaces))
+      // Listens to turns and also errors specifically sent to this player
+      val turnsSubscription = turns
+        .subscribe(10)
+        .filter(_.fold(_.id == playerId, _ => true))
+        .map(turn => Text(turn.leftMap(_.entity).asJson.noSpaces))
 
-        val gameStateMachine = GameStateMachine[F].transition(playerId, gameVar, turns)
+      val gameStateMachine = GameStateMachine[F].transition(playerId, gameVar, turns)
 
-        val decodeEvents: Pipe[F, WebSocketFrame, Either[GameError, GameEvent]] = _.collect {
-          case Text(jsonEvt, _) =>
-            decode[GameEvent](jsonEvt).leftMap[GameError](err => InvalidEvent(err.show))
-        }
+      val decodeEvents: Pipe[F, WebSocketFrame, Either[GameError, GameEvent]] = _.collect {
+        case Text(jsonEvt, _) =>
+          decode[GameEvent](jsonEvt).leftMap[GameError](err => InvalidEvent(err.show))
+      }
 
-        val turnGenerator = decodeEvents.andThen(_.flatMap {
-          case Left(gameError) =>
-            Stream.emit(gameError.withId(playerId).asLeft[TurnState]).through(turns.publish)
-          case Right(event)    =>
-            Stream.emit(event).through(gameStateMachine)
-        })
+      val turnGenerator = decodeEvents.andThen(_.flatMap {
+        case Left(gameError) =>
+          Stream.emit(gameError.withId(playerId).asLeft[TurnState]).through(turns.publish)
+        case Right(event)    =>
+          Stream.emit(event).through(gameStateMachine)
+      })
 
-        val initPlayer = for {
-          _  <- GameRepository[F].getPlayer(playerId)
-          _  <- Stream
-                  .emit[F, GameEvent](PlayerJoined)
-                  .through(gameStateMachine)
-                  .compile
-                  .drain
-          ws <- WebSocketBuilder[F].build(turnsSubscription, turnGenerator)
-        } yield ws
+      val initPlayer = for {
+        _  <- GameRepository[F].getPlayer(playerId)
+        _  <- Stream
+                .emit[F, GameEvent](PlayerJoined)
+                .through(gameStateMachine)
+                .compile
+                .drain
+        ws <- WebSocketBuilder[F].build(turnsSubscription, turnGenerator)
+      } yield ws
 
-        initPlayer.handleErrorWith {
-          case err: GameError =>
-            WebSocketBuilder[F]
-              .build(Stream.fromEither[F](Close(1002)).cons1(Text(err.asJson.noSpaces)), _.as(unit))
-        }
+      initPlayer.handleErrorWith { case err: GameError =>
+        WebSocketBuilder[F]
+          .build(Stream.fromEither[F](Close(1002)).cons1(Text(err.asJson.noSpaces)), _.as(unit))
+      }
     }
   }
 }
