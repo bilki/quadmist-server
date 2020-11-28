@@ -7,7 +7,7 @@ lazy val quadmist = (project in file("."))
   .dependsOn(`quadmist-server`)
   .aggregate(`quadmist-common`, `quadmist-server`)
 
-lazy val `quadmist-common` = ProjectRef(file("quadmist-common"), "quadmist-common")
+lazy val `quadmist-common` = ProjectRef(file("quadmist-common"), "quadmist-common-subJVM")
 
 lazy val `quadmist-server` = project
   .settings(
