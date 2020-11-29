@@ -1,20 +1,26 @@
-name in ThisBuild := """quadmist"""
-scalaVersion in ThisBuild := "2.13.3"
-version in ThisBuild := "0.1.0-SNAPSHOT"
-organization in ThisBuild := "com.lambdarat"
+lazy val commonSettings = Seq(
+  version := "0.1.0-SNAPSHOT",
+  organization := "com.lambdarat",
+  scalaVersion := "2.13.3",
+  scalacOptions ++= Seq(
+    "-Ymacro-annotations",
+    "-language:higherKinds"
+  )
+)
 
-lazy val quadmist = (project in file("."))
+lazy val quadmist = project
+  .in(file("."))
+  .settings(commonSettings)
+  .settings(
+    mainClass in (Compile, run) := Some("com.lambdarat.quadmist.Quadmist"),
+    test in `quadmist-common` := {} // Not needed here, run them in common repo
+  )
   .dependsOn(`quadmist-server`)
   .aggregate(`quadmist-common`, `quadmist-server`)
 
 lazy val `quadmist-common` = ProjectRef(file("quadmist-common"), "quadmist-common-subJVM")
 
 lazy val `quadmist-server` = project
-  .settings(
-    libraryDependencies ++= serverDependencies,
-    scalacOptions ++= Seq(
-      "-Ymacro-annotations",
-      "-language:higherKinds"
-    )
-  )
+  .settings(commonSettings)
+  .settings(libraryDependencies ++= serverDependencies)
   .dependsOn(`quadmist-common`)
