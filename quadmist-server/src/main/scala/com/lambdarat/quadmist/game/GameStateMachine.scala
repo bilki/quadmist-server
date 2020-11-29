@@ -1,5 +1,9 @@
 package com.lambdarat.quadmist.game
 
+import cats.data.Validated._
+import cats.data._
+import cats.effect.Sync
+import cats.implicits._
 import com.lambdarat.quadmist.common.domain.Color.{Blue, Red}
 import com.lambdarat.quadmist.common.domain.{Card, Player}
 import com.lambdarat.quadmist.common.game.GameError.{
@@ -16,20 +20,14 @@ import com.lambdarat.quadmist.common.game.GameEvent.{
   PlayerJoined,
   PlayerMove
 }
-import com.lambdarat.quadmist.common.game.GamePhase.{Finish, Initial, PlayerBlueTurn, PlayerRedTurn}
+import com.lambdarat.quadmist.common.game.GamePhase.{BlueTurn, Finish, Initial, RedTurn}
 import com.lambdarat.quadmist.common.game.{GameError, GameEvent, InitialHand}
 import com.lambdarat.quadmist.common.utils.Identified
 import com.lambdarat.quadmist.common.utils.Identified._
 import com.lambdarat.quadmist.repository.GameRepository
 import com.lambdarat.quadmist.server.QuadmistCommon._
-
 import fs2.{Pipe, Stream}
 import monocle.macros.GenLens
-
-import cats.data.Validated._
-import cats.data._
-import cats.effect.Sync
-import cats.implicits._
 
 trait GameStateMachine[F[_]] {
   def transition(
@@ -102,18 +100,18 @@ object GameStateMachine {
       event: Identified[Player.Id, GameEvent]
   ): F[GameInfo] =
     (gameInfo.phase, event.entity) match {
-      case (Initial, PlayerJoined)                                       =>
+      case (Initial, PlayerJoined(_))                              =>
         Sync[F].fromEither(playerJoined(gameInfo, event.id))
-      case (Initial, ph: PlayerHand)                                     =>
+      case (Initial, ph: PlayerHand)                               =>
         for {
           playerCards <- GameRepository[F].getCardsBy(event.id)
           newGameInfo <- Sync[F].fromEither(playerHand(gameInfo, ph, event.id, playerCards))
         } yield newGameInfo
-      case (PlayerBlueTurn, turn: PlayerMove) if turn.move.color == Blue => ???
-      case (PlayerRedTurn, turn: PlayerMove) if turn.move.color == Red   => ???
-      case (PlayerRedTurn | PlayerBlueTurn, GameFinished)                => ???
-      case (Finish, _)                                                   => ???
-      case _                                                             =>
+      case (BlueTurn, turn: PlayerMove) if turn.move.color == Blue => ???
+      case (RedTurn, turn: PlayerMove) if turn.move.color == Red   => ???
+      case (RedTurn | BlueTurn, GameFinished)                      => ???
+      case (Finish, _)                                             => ???
+      case _                                                       =>
         Sync[F].raiseError(InvalidTransition(event.entity, gameInfo.phase))
     }
 

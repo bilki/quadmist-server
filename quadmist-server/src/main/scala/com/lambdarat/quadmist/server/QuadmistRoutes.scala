@@ -58,7 +58,7 @@ object QuadmistRoutes {
       val initPlayer = for {
         _  <- GameRepository[F].getPlayer(playerId)
         _  <- Stream
-                .emit[F, GameEvent](PlayerJoined)
+                .emit[F, GameEvent](PlayerJoined(playerId))
                 .through(gameStateMachine)
                 .compile
                 .drain
