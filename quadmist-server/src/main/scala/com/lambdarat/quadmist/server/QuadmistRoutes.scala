@@ -1,5 +1,8 @@
 package com.lambdarat.quadmist.server
 
+import cats.effect._
+import cats.implicits._
+import cats.instances.unit
 import com.lambdarat.quadmist.common.codecs._
 import com.lambdarat.quadmist.common.domain.Player
 import com.lambdarat.quadmist.common.game.GameError.InvalidEvent
@@ -9,20 +12,15 @@ import com.lambdarat.quadmist.common.utils.Identified._
 import com.lambdarat.quadmist.game.GameStateMachine
 import com.lambdarat.quadmist.repository.GameRepository
 import com.lambdarat.quadmist.server.QuadmistCommon._
-
 import fs2.{Pipe, Stream}
+import io.chrisdavenport.fuuid.http4s._
 import io.circe.parser.decode
 import io.circe.syntax._
-import memeid4s.UUID
 import org.http4s._
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.websocket.WebSocketBuilder
 import org.http4s.websocket.WebSocketFrame
 import org.http4s.websocket.WebSocketFrame.{Close, Text}
-
-import cats.effect._
-import cats.implicits._
-import cats.instances.unit
 
 object QuadmistRoutes {
   def service[F[_]: ConcurrentEffect: Timer: GameRepository: GameStateMachine](
@@ -32,7 +30,7 @@ object QuadmistRoutes {
     val dsl = Http4sDsl[F]
     import dsl._
 
-    HttpRoutes.of[F] { case GET -> Root / "join" / UUID(id) =>
+    HttpRoutes.of[F] { case GET -> Root / "join" / FUUIDVar(id) =>
       val playerId = Player.Id(id)
 
       // Listens to turns and also errors specifically sent to this player

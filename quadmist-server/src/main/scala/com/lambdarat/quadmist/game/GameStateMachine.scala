@@ -73,7 +73,7 @@ object GameStateMachine {
       .mapN(Set(_, _, _, _, _))
   }
 
-  def playerHand(
+  def setPlayerHand(
       gameInfo: GameInfo,
       playerHand: PlayerHand,
       playerId: Player.Id,
@@ -100,18 +100,18 @@ object GameStateMachine {
       event: Identified[Player.Id, GameEvent]
   ): F[GameInfo] =
     (gameInfo.phase, event.entity) match {
-      case (Initial, PlayerJoined(_))                              =>
+      case (Initial, PlayerJoined(_))                                          =>
         Sync[F].fromEither(playerJoined(gameInfo, event.id))
-      case (Initial, ph: PlayerHand)                               =>
+      case (Initial, ph: PlayerHand)                                           =>
         for {
           playerCards <- GameRepository[F].getCardsBy(event.id)
-          newGameInfo <- Sync[F].fromEither(playerHand(gameInfo, ph, event.id, playerCards))
+          newGameInfo <- Sync[F].fromEither(setPlayerHand(gameInfo, ph, event.id, playerCards))
         } yield newGameInfo
-      case (BlueTurn, turn: PlayerMove) if turn.move.color == Blue => ???
-      case (RedTurn, turn: PlayerMove) if turn.move.color == Red   => ???
-      case (RedTurn | BlueTurn, GameFinished)                      => ???
-      case (Finish, _)                                             => ???
-      case _                                                       =>
+      case (RedTurn, turn: PlayerMove) if event.id.some == gameInfo.playerOne  => ???
+      case (BlueTurn, turn: PlayerMove) if event.id.some == gameInfo.playerTwo => ???
+      case (RedTurn | BlueTurn, GameFinished)                                  => ???
+      case (Finish, _)                                                         => ???
+      case _                                                                   =>
         Sync[F].raiseError(InvalidTransition(event.entity, gameInfo.phase))
     }
 

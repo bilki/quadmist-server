@@ -1,15 +1,12 @@
 package com.lambdarat.quadmist.repository
 
+import cats.effect.IO
 import com.lambdarat.quadmist.common.domain.Player
 import com.lambdarat.quadmist.common.game.GameError.InvalidPlayer
 import com.lambdarat.quadmist.repository.dto.PlayerDTO
-
-import memeid4s.UUID
-import memeid4s.cats.implicits._
+import io.chrisdavenport.fuuid.FUUID
 
 import scala.collection.concurrent.TrieMap
-
-import cats.effect.IO
 
 trait PlayerRepository[F[_]] {
   def getPlayer(id: Player.Id): F[PlayerDTO]
@@ -28,7 +25,7 @@ object PlayerRepository {
 
     override def createPlayer(name: Player.Name): IO[Player.Id] =
       for {
-        playerId <- UUID.random[IO].map(Player.Id.apply)
+        playerId <- FUUID.randomFUUID[IO].map(Player.Id.apply)
         _        <- IO(players.put(playerId, PlayerDTO(playerId, Player(name))))
       } yield playerId
 

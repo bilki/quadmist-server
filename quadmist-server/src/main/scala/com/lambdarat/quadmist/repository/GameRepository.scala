@@ -1,13 +1,11 @@
 package com.lambdarat.quadmist.repository
 
-import com.lambdarat.quadmist.common.domain
+import cats.effect.Sync
+import cats.implicits._
 import com.lambdarat.quadmist.common.domain.{Card, CardClass, Player}
 import com.lambdarat.quadmist.common.utils.Identified
 import com.lambdarat.quadmist.common.utils.Identified._
 import com.lambdarat.quadmist.repository.dto.{CardClassDTO, PlayerDTO}
-
-import cats.effect.Sync
-import cats.implicits._
 
 trait GameRepository[F[_]] {
   def getPlayer(id: Player.Id): F[Player]

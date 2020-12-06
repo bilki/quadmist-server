@@ -1,15 +1,12 @@
 package com.lambdarat.quadmist.repository
 
+import cats.effect.IO
 import com.lambdarat.quadmist.common.domain.CardClass
 import com.lambdarat.quadmist.common.game.GameError.InvalidCardClass
 import com.lambdarat.quadmist.repository.dto.CardClassDTO
-
-import memeid4s.UUID
-import memeid4s.cats.implicits._
+import io.chrisdavenport.fuuid.FUUID
 
 import scala.collection.concurrent.TrieMap
-
-import cats.effect.IO
 
 trait CardClassRepository[F[_]] {
   def getCardClass(id: CardClass.Id): F[CardClassDTO]
@@ -27,7 +24,7 @@ object CardClassRepository {
 
     override def createCardClass(name: CardClass.Name): IO[CardClass.Id] =
       for {
-        cardClassId <- UUID.random[IO].map(CardClass.Id.apply)
+        cardClassId <- FUUID.randomFUUID[IO].map(CardClass.Id.apply)
         _           <- IO(cardClasses.put(cardClassId, CardClassDTO(cardClassId, CardClass(name))))
       } yield cardClassId
 

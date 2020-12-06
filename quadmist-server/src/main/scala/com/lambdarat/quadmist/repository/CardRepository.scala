@@ -4,12 +4,9 @@ import com.lambdarat.quadmist.common.domain.{Card, CardClass, Player}
 import com.lambdarat.quadmist.common.game.GameError.InvalidCard
 import com.lambdarat.quadmist.repository.dto.CardDTO
 
-import memeid4s.UUID
-import memeid4s.cats.implicits._
-
 import scala.collection.concurrent.TrieMap
-
 import cats.effect.IO
+import io.chrisdavenport.fuuid.FUUID
 
 trait CardRepository[F[_]] {
   def getCard(id: Card.Id): F[CardDTO]
@@ -29,7 +26,7 @@ object CardRepository {
 
     override def generateCard(cclass: CardClass.Id, owner: Player.Id, card: Card): IO[Card.Id] =
       for {
-        cardId <- UUID.random[IO].map(Card.Id.apply)
+        cardId <- FUUID.randomFUUID[IO].map(Card.Id.apply)
         _      <- IO(cards.put(cardId, CardDTO(cardId, cclass, owner, card)))
       } yield cardId
 
